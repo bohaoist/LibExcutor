@@ -12,28 +12,32 @@
 #include <stdio.h>
 #include <string.h>
 
-#define LOG_FILE_NAME "CLLogger.txt"
-#define MAX_BUF_SIZE 256
-#ifndef NULL
-#define NULL 0
-#endif
 
-int CLLogger::m_Fd = -1;
+
+#define LOG_FILE_NAME "CLLogger.txt"
+#define MAX_BUF_SIZE 1024
+#define BUFFER_SIZE_LOG_FILE 1024
+
+
 CLLogger * CLLogger::m_pLogger = NULL;
 
 CLLogger::CLLogger() {
-	// TODO Auto-generated constructor stub
+
 	m_Fd = open(LOG_FILE_NAME,O_RDWR | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR );
 	if(m_Fd == -1)
 		throw "In CLLogger::CLLogger(), open error";
+	m_pLogBuffer = new char[BUFFER_SIZE_LOG_FILE];
+	m_nUsedBytesForBuffer = 0;
 }
 
 CLLogger::~CLLogger() {
-	// TODO Auto-generated destructor stub
+
 	if(m_Fd != -1)
 		close(CLLogger::m_Fd);
 	if(m_pLogger != NULL)
 		delete m_pLogger;
+	if(m_pLogBuffer != NULL)
+		delete [] m_pLogBuffer;
 }
 
 CLLogger * CLLogger::GetInstance(){
@@ -49,16 +53,62 @@ CLStatus CLLogger::WriteLog(char *pstrMesg, long lErrorCode){
 		return CLStatus(-1, 0);
 	if(m_Fd == -1)
 		return CLStatus(-2,0);
-
-	ssize_t wd = write(m_Fd,pstrMesg,strlen(pstrMesg));
-	if(wd == -1){
-		return CLStatus(-1, errno);
-	}
+	if(m_pLogBuffer == NULL)
+		return CLStatus(-3,0);
+	const char * ErrorCodeFormat = "\tError Code:%ld\r\n";
 	char buf[MAX_BUF_SIZE];
-	snprintf(buf,MAX_BUF_SIZE,"\tError Code: %ld\r\n", lErrorCode);
-	wd = write(m_Fd,buf,strlen(buf));
-	if(wd == -1){
-		return CLStatus(-1, errno);
+	unsigned int nbuffleft = BUFFER_SIZE_LOG_FILE - m_nUsedBytesForBuffer;
+	snprintf(buf, MAX_BUF_SIZE,ErrorCodeFormat, lErrorCode);
+	unsigned int lenpstr = strlen(pstrMesg);
+	unsigned int lenerrcode = strlen(buf);
+	unsigned int nlen_msg = lenpstr + lenerrcode;
+
+	if(nlen_msg > BUFFER_SIZE_LOG_FILE){
+		CLStatus state = Flush();
+		if(!state.IsSuccess())
+			return CLStatus(-1,0);
+		ssize_t wd = write(m_Fd,pstrMesg,lenpstr);
+			if(wd == -1){
+				return CLStatus(-1, errno);
+			}
+		wd = write(m_Fd,buf,lenerrcode);
+			if(wd == -1){
+				return CLStatus(-1, errno);
+			}
+			return CLStatus(0,0);
 	}
+
+	if(nlen_msg > nbuffleft){
+		CLStatus state = Flush();
+		if(!state.IsSuccess())
+			return CLStatus(-1,0);
+	}
+
+	memcpy(m_pLogBuffer + m_nUsedBytesForBuffer,pstrMesg, lenpstr);
+	m_nUsedBytesForBuffer += lenpstr;
+	memcpy(m_pLogBuffer + m_nUsedBytesForBuffer, buf, lenerrcode);
+	m_nUsedBytesForBuffer += lenerrcode;
+	return CLStatus(0,0);
+}
+
+CLStatus CLLogger::WriteLogMesg(char *pstrMesg, long lErrorCode){
+	CLLogger *pLog = CLLogger::GetInstance();
+	return pLog->WriteLog(pstrMesg,lErrorCode);
+}
+
+CLStatus CLLogger::Flush(){
+	if(m_Fd == -1){
+		return CLStatus(-1,0);
+	}
+	if(m_pLogBuffer == NULL){
+		return CLStatus(-1,0);
+	}
+	if(m_nUsedBytesForBuffer ==0){
+		return CLStatus(0,0);
+	}
+	ssize_t w = write(m_Fd, m_pLogBuffer,m_nUsedBytesForBuffer);
+	if(-1 == w)
+		return CLStatus(-1,errno);
+	m_nUsedBytesForBuffer = 0;
 	return CLStatus(0,0);
 }

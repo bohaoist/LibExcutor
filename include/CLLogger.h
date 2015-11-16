@@ -15,14 +15,21 @@ class CLLogger {
 public:
 	static CLLogger * GetInstance();
 	CLStatus WriteLog(char *pstrMesg,long lErrorCode);
+	static CLStatus WriteLogMesg(char *pstrMesg, long lErrorCode);
+	CLStatus Flush();
+
 
 private:
 	CLLogger(const CLLogger &Log);
 	CLLogger & operator=(const CLLogger &);
 	CLLogger();
 	virtual ~CLLogger();
-	static int m_Fd;
-	static CLLogger * m_pLogger;
+	int m_Fd;
+	static CLLogger * m_pLogger;  //因为要让 static GetInstance()不通过对象访问，所以要把 m_pLogger写成static的
+
+private:
+	unsigned int m_nUsedBytesForBuffer;
+	char * m_pLogBuffer;
 };
 
 #endif /* CLLOGGER_H_ */

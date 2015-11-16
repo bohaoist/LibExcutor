@@ -14,8 +14,8 @@ class CLLogger {
 
 public:
 	static CLLogger * GetInstance();
-	CLStatus WriteLog(char *pstrMesg,long lErrorCode);
-	static CLStatus WriteLogMesg(char *pstrMesg, long lErrorCode);
+	CLStatus WriteLog(const char *pstrMesg,const long lErrorCode);
+	static CLStatus WriteLogMesg(const char *pstrMesg, const long lErrorCode);
 	CLStatus Flush();
 
 

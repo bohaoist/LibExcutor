@@ -48,7 +48,7 @@ CLLogger * CLLogger::GetInstance(){
 	return CLLogger::m_pLogger;
 }
 
-CLStatus CLLogger::WriteLog(char *pstrMesg, long lErrorCode){
+CLStatus CLLogger::WriteLog(const char *pstrMesg, const long lErrorCode){
 	if((pstrMesg == NULL) || (strlen(pstrMesg) == 0))
 		return CLStatus(-1, 0);
 	if(m_Fd == -1)
@@ -91,7 +91,7 @@ CLStatus CLLogger::WriteLog(char *pstrMesg, long lErrorCode){
 	return CLStatus(0,0);
 }
 
-CLStatus CLLogger::WriteLogMesg(char *pstrMesg, long lErrorCode){
+CLStatus CLLogger::WriteLogMesg(const char *pstrMesg, const long lErrorCode){
 	CLLogger *pLog = CLLogger::GetInstance();
 	return pLog->WriteLog(pstrMesg,lErrorCode);
 }

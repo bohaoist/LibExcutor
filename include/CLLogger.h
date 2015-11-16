@@ -17,6 +17,7 @@ public:
 	CLStatus WriteLog(const char *pstrMesg,const long lErrorCode);
 	static CLStatus WriteLogMesg(const char *pstrMesg, const long lErrorCode);
 	CLStatus Flush();
+	static void OnProcessExit();
 
 
 private:
@@ -30,6 +31,7 @@ private:
 private:
 	unsigned int m_nUsedBytesForBuffer;
 	char * m_pLogBuffer;
+	bool m_bFlagForExit;
 };
 
 #endif /* CLLOGGER_H_ */

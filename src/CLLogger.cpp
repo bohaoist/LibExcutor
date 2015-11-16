@@ -11,7 +11,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <stdlib.h>
 
 
 #define LOG_FILE_NAME "CLLogger.txt"
@@ -28,6 +28,7 @@ CLLogger::CLLogger() {
 		throw "In CLLogger::CLLogger(), open error";
 	m_pLogBuffer = new char[BUFFER_SIZE_LOG_FILE];
 	m_nUsedBytesForBuffer = 0;
+	m_bFlagForExit = false;
 }
 
 CLLogger::~CLLogger() {
@@ -42,8 +43,15 @@ CLLogger::~CLLogger() {
 
 CLLogger * CLLogger::GetInstance(){
 
-	if(CLLogger::m_pLogger == NULL)
+	if(CLLogger::m_pLogger == NULL){
 		CLLogger::m_pLogger = new CLLogger();
+		if(atexit(CLLogger::OnProcessExit) != 0){
+			if(m_pLogger != 0){
+				m_pLogger->WriteLogMesg("atexit error.",errno);
+				m_pLogger->Flush();
+			}
+		}
+	}
 
 	return CLLogger::m_pLogger;
 }
@@ -63,7 +71,7 @@ CLStatus CLLogger::WriteLog(const char *pstrMesg, const long lErrorCode){
 	unsigned int lenerrcode = strlen(buf);
 	unsigned int nlen_msg = lenpstr + lenerrcode;
 
-	if(nlen_msg > BUFFER_SIZE_LOG_FILE){
+	if((nlen_msg > BUFFER_SIZE_LOG_FILE) || (m_bFlagForExit)){
 		CLStatus state = Flush();
 		if(!state.IsSuccess())
 			return CLStatus(-1,0);
@@ -111,4 +119,13 @@ CLStatus CLLogger::Flush(){
 		return CLStatus(-1,errno);
 	m_nUsedBytesForBuffer = 0;
 	return CLStatus(0,0);
+}
+
+void CLLogger::OnProcessExit(){
+	CLLogger *pLog = CLLogger::GetInstance();
+	if(pLog != 0){
+		pLog->Flush();
+		pLog->m_bFlagForExit = true;
+	}
+
 }

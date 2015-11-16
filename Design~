@@ -1,0 +1,5 @@
+Design Principal
+
+CLStatus:
+	为了使得类外部可以直接使用变量名返回出错码 m_lErrorCode, 使用了两个public的const long &引用来实现外部只可以读不可写。
+	直接 return CLStatus()对象会减少构造对象的次数，提高效率，故这样写。不要CLStatus A; return A；，这样会增加构造次数。

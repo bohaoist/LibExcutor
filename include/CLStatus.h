@@ -19,7 +19,7 @@ public:
 	bool IsSuccess();
 	long GetErrorCode();
 
-	/*为了直接使用数据成员返回出错码，用引用实现，使得内部可读写，外部不可读写。*/
+	/*为了直接使用数据成员返回出错码，！---用引用实现----！，使得内部可读写，外部不可读写。*/
 	const long& m_clReturnCode;
 	const long& m_clErrorCode;
 

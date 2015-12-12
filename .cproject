@@ -109,9 +109,10 @@
 					</folderInfo>
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.debug.1625962421.193382554" name="/" resourcePath="mytest">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.exe.debug.1727336709" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.debug" unusedChildren="">
+							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1760988712" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.1899772480"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.707559708" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.178501974">
-								<option id="gnu.cpp.compiler.option.include.paths.1089512791" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+								<option id="gnu.cpp.compiler.option.include.paths.1089512791" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/include}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1340290533" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>

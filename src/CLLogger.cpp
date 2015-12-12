@@ -127,5 +127,4 @@ void CLLogger::OnProcessExit(){
 		pLog->Flush();
 		pLog->m_bFlagForExit = true;
 	}
-
 }

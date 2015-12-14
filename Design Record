@@ -102,7 +102,15 @@ CLLogger:
 	*基于接口的程序设计思想再封装：（新变化点：业务流程可能发生改变）
 	要解决的问题：第三个变化点：业务流程的变化，即先创建执行体然后再执行业务逻辑这一流程可能发生改变。（1.执行方式变化。2.业务变化）
 	思路：结合面向方面的思想，只是面向方面用模板参数来装配流程，而面向接口的思想用函数参数来装配流程。加入一个协调器来控制业务流程，其中数据成员分别是执行方式的指针和业务指针。
-	同时，为了封装不同的流程，弄一个协调器的继承体系出来。同时，为了控制执行流，在执行体类和业务类中要加入指向协调器的指针。
+	同时，为了封装不同的流程，弄一个协调器的继承体系出来。同时，为了控制执行流，在执行体类和业务类中要加入指向协调器的指针。Run的时候，先用协调器通过excutive指针建立线程，建立后
+	再用线程和协调器的指针，将程序控制流转移到协调器中，然后再由协调器的ReturnControlRight调用业务逻辑。
+	使用方法：
+	CLCoordinator *pCoordinator = new CLRegularCoordinator();
+	CLExecutiveFunctionProvider * printer = new CLParaPrinter();
+	CLExecutive *pThread = new CLThread(pCoordinator);
+	pCoordinator->SetExecObjects(pThread,printer);
+	pCoordinator->Run((void*)2000);
+	pCoordinator->WaitForDeath();
 	
 线程同步的封装：
 		

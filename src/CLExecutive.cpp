@@ -7,12 +7,12 @@
 
 #include"CLExecutive.h"
 
-CLExecutive::CLExecutive(CLExecutiveFunctionProvider *pExecutiveFunctionProvider)
+CLExecutive::CLExecutive(CLCoordinator *Coordinator)
 {
-	if(pExecutiveFunctionProvider == 0)
-		throw "In CLExecutive::CLExecutive(), pExecutiveFunctionProvider error";
+	if(Coordinator == 0)
+		throw "In CLExecutive::CLExecutive(), Coordinator error";
 
-	m_pExecutiveFunctionProvider = pExecutiveFunctionProvider;
+	m_pCoordinator = Coordinator;
 }
 
 CLExecutive& CLExecutive::operator=(const CLExecutive& executive)
@@ -20,13 +20,13 @@ CLExecutive& CLExecutive::operator=(const CLExecutive& executive)
 	if(this == &executive)
 		return *this;
 
-	m_pExecutiveFunctionProvider = executive.m_pExecutiveFunctionProvider;
+	m_pCoordinator = executive.m_pCoordinator;
 	return *this;
 }
 
 CLExecutive::~CLExecutive()
 {
-	delete m_pExecutiveFunctionProvider;
+	delete m_pCoordinator;
 }
 
 

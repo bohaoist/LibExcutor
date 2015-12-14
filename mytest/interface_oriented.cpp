@@ -6,13 +6,16 @@
  */
 #include"CLParaPrinter.h"
 #include"CLThread.h"
+#include"CLRegularCoordinator.h"
 
 int main()
 {
+	CLCoordinator *pCoordinator = new CLRegularCoordinator();
 	CLExecutiveFunctionProvider * printer = new CLParaPrinter();
-	CLExecutive *pThread = new CLThread(printer);
-	pThread->Run((void*)2);
-	pThread->WaitForDeath();
+	CLExecutive *pThread = new CLThread(pCoordinator);
+	pCoordinator->SetExecObjects(pThread,printer);
+	pCoordinator->Run((void*)2000);
+	pCoordinator->WaitForDeath();
 	return 0;
 }
 

@@ -16,7 +16,7 @@
 class CLThread:public CLExecutive
 {
 public:
-	CLThread(CLCoordinator *pCoordinator);
+	CLThread(CLExecutiveFunctionProvider *pExecutiveFunctionProvider);
 	virtual ~CLThread();
 	virtual CLStatus Run(void *pContext = 0);
 	virtual CLStatus WaitForDeath();

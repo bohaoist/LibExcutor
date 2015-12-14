@@ -17,7 +17,7 @@
 #include <error.h>
 #include <string.h>
 using namespace std;
-int main(int argc, char ** argv){
+int main_efficiency(int argc, char ** argv){
 
 	const int count = 1000000;
 	int fd =  open("wirtes-time-consume.txt",O_RDWR | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR );

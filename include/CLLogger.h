@@ -15,7 +15,7 @@ class CLLogger {
 public:
 	static CLLogger * GetInstance();
 	CLStatus WriteLog(const char *pstrMesg,const long lErrorCode);
-	static CLStatus WriteLogMesg(const char *pstrMesg, const long lErrorCode);
+	static CLStatus WriteLogMesg(const char *pstrMesg, const long lErrorCode);//外部直接调用写
 	CLStatus Flush();
 	static void OnProcessExit();
 

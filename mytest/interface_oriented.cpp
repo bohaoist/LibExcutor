@@ -8,7 +8,7 @@
 #include"CLThread.h"
 #include"CLRegularCoordinator.h"
 
-int main()
+int main_interface()
 {
 	CLCoordinator *pCoordinator = new CLRegularCoordinator();
 	CLExecutiveFunctionProvider * printer = new CLParaPrinter();

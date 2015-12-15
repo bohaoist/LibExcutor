@@ -7,7 +7,9 @@ CLLogger:
 	”例如：int *restrict pInt = (int *)malloc(4); int *pNewInt = pInt;有了restrict关键字，则所分配的4字节内存只能由pInt来访问，
 	第二句中讲pInt赋值给pNewInt是错误的。但编译器不会对这种错误报错（gcc）。所以，restrict的限制只能由程序员来保证。这个关键字的本意是指示
 	编译器对代码进行优化的。注意：c++并不支持restrict，不过可以使用“_restrict"。
-	赋值构造函数 CLASSA & operator=(const CLASSA & a)要检查自赋值的情况,如果要返回this引用，则必须返回*this，不能直接返回this。 
+	赋值构造函数 CLASSA & operator=(const CLASSA & a)要检查自赋值的情况,如果要返回this引用，则必须返回*this，不能直接返回this。
+	如果不同的情况都需要相同的处理流程的时候，可以用try-catch来控制程序执行流来控制程序执行流程，而不用goto或带参函数。
+	派生类初始化基类时只要用派生类构造函数上加基类构造函数即可，如：class B(int p):A(p){}，其中A是基类构造 
 	
 	c++ style:
 	if( -1 == w )，一定要不左值放在右边，防止不小心写成 if( w = -1)，避免错误

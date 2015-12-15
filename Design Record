@@ -53,7 +53,7 @@ CLLogger:
 		                   const pthread_attr_t *restrict attr,
 		                   void *(*start_rtn)(void), 
 		                   void *restrict arg);
-			Returns: 0 if OK, error number on failure。成功返回0，失败返回错误码。
+			Returns: 0 if OK, error number on failure。成功返回0，失败返回错误码。不像其他一些API返回0表示正确，-1表示错误，而出错码要通过全局变量errno获得，然后再用strerror()函数获得具体含义。
 			pthread_t是存储线程ID的类型，定义为typedef unsigned long int pthread_t。参数中指针pthread_t *表面在调用前用先创建一个tidp。
 	
 	等待线程死亡并收回状态资源：主线程如果退出，不管其他线程是否在运行，都一律终止，整个进程也终止。所以需要用到等待线程死亡并收回线程状态所占用的资源：pthread_join。
@@ -113,7 +113,38 @@ CLLogger:
 	pCoordinator->WaitForDeath();
 	
 线程同步的封装：
-		
+	几个问题：声明是线程同步？为什么需要线程同步？什么是死锁？如何避免死锁？
+	互斥锁：pthread库提供了互斥量的机制，互斥量实际是一把锁。当一线程需要访问共享资源时，首先需要进行加锁。pthread库中要使用互斥量首先要初始化它，使用完毕还要销毁它。
+	互斥锁API：pthread_mutex_inti，pthread_mutex_destroy，pthread_mutex_lock(默认会阻塞),pthread_mutex_unlock，pthread_mutex_trylock。调用成功时返回0，出错时返回错误码。
+	其中，如互斥量已经被加锁，若有其他线程再调用pthread_mutex_lock加锁，则会阻塞。用pthread_mutex_trylock则不会阻塞，返回EBUSY。这几个函数成功时返回0，出错时返回出错码。
+	加锁流程：
+		1.初始化一个pthread_mutex_t类型的互斥量。
+		2.调用pthread_mutex_init函数对互斥量进行初始化。
+		3.访问共享资源前用pthread_mutex_lock或trylock解锁。
+		4.访问共享资源
+		5.访问完共享资源，用pthread_mutex_unlock解锁
+		6.当不需要互斥量的时候，用pthread_mutex_destroy函数销毁互斥量。
+	
+	线程安全版本的CLLogger类：
+	不安全的表现：1.写日志时不安全，若在Flush的时候后，已用缓存标记未置为0前有数据写入缓冲区，则置为0后这部分信息就会被丢失。
+	2.创建CLLogger类对象时不安全，若在创建了一半赋值个对象指针m_pLogger前被中断，则会导致可能创建多个对象，而只有一个指针，造成内存泄露。当多个线程都在调用WriteLogMsg函数记录的日志时，
+	这些线程都有可能同时向CLLogger的缓存写入日志信息。
+	注意：分清楚哪些是多线程共享区！然后才能利用合适的锁。相同的共享区用同一把锁。1.创建唯一的单例对象是共享区，需要加锁。2.涉及到缓冲区的部分是共享区，对共享变量的操作都要加锁。
+	对不同的区域要不同的锁，所以要两把锁。锁——其实是对执行流的一种控制，执行流的一种阻滞，一种停滞，让某一段执行流必须只能单个线程通过，不能拥挤。
+	性能：为了提高性能，将if(CLLogger::m_pLogger != NULL)放在第一行，直接判断对象是否创建成功。而不用等待加锁了之后再去判断。这会不会造成不一致的情况呢？即创建对象的时候写了一半
+	就被中断，而另一个在此时读。不可能。因为通常情况下，读写一个对齐了的数据，都能在一个总线周期内完成。将一个地址值写入m_pLog或从m_pLog读出地址值，是不会被中断的。目前的版本无论是直接往文件
+	写日志信息还是往缓存中写日志信息，都需要进行同步，而一同步就会影响程序性能。如何尽量减少同步时间呢？一种方案是：每个线程都由自己的日志缓存；每次写日志都直接写入自己独享的缓存中。当缓存满时可以
+	同步刷缓存，或者把刷缓存任务交给某个独立的线程进行。
+	bug：目前的版本还存在一个bug，就是如果线程B获得日志对象指针后，在线程A完成atexit函数调用、以及m_bFlagForProcessExit标志赋值之前就执行了写日志操作，那么存入缓存中的日志信息就有
+	可能丢失。
+	
+	CLMutex：封装互斥量
+	将互斥量初始化和销毁分别放在构造函数和析构函数中。对外提供接口有Lock和Unlock，用来加锁和解锁。但是如果直接拿来用CLMutex，可能涉及到要处理异常并解锁，则会很复杂。
+	CLCriticalSection将CLMutex对象包装起来，利用局部对象的生存周期，随着CLCriticalSection对象建立而加锁，销毁而解锁，这样自动实现加锁和解锁。
+	
+	
+	
+	
 	
 	
 	

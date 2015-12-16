@@ -118,7 +118,7 @@ CLLogger:
 	互斥锁API：pthread_mutex_inti，pthread_mutex_destroy，pthread_mutex_lock(默认会阻塞),pthread_mutex_unlock，pthread_mutex_trylock。调用成功时返回0，出错时返回错误码。
 	其中，如互斥量已经被加锁，若有其他线程再调用pthread_mutex_lock加锁，则会阻塞。用pthread_mutex_trylock则不会阻塞，返回EBUSY。这几个函数成功时返回0，出错时返回出错码。
 	加锁流程：
-		1.初始化一个pthread_mutex_t类型的互斥量。
+		1.初始化一个pthread_mutex_t类型的互斥量。如果是静态分配的，则可以用常量PTHREAD_MUTEX_INITIALIZER来初始化。不用pthread_mutex_init函数。
 		2.调用pthread_mutex_init函数对互斥量进行初始化。
 		3.访问共享资源前用pthread_mutex_lock或trylock解锁。
 		4.访问共享资源
@@ -140,7 +140,36 @@ CLLogger:
 	
 	CLMutex：封装互斥量
 	将互斥量初始化和销毁分别放在构造函数和析构函数中。对外提供接口有Lock和Unlock，用来加锁和解锁。但是如果直接拿来用CLMutex，可能涉及到要处理异常并解锁，则会很复杂。
-	CLCriticalSection将CLMutex对象包装起来，利用局部对象的生存周期，随着CLCriticalSection对象建立而加锁，销毁而解锁，这样自动实现加锁和解锁。
+	CLCriticalSection将CLMutex对象包装起来，利用局部对象的生存周期，随着CLCriticalSection对象建立而加锁，销毁而解锁，这样自动实现加锁和解锁。使用的时候必须用{}将CLCriticalSection对象
+	放到其中。{CLCriticalSection cs(&(p->mutex));}
+	
+	条件变量：	
+	互斥变量只能保证互斥的访问共享区，而条件变量不仅可以实现互斥访问，而且还能保证线程之间的先后顺序。比如：先有线程A执行某个操作，执行完后，才能由线程B执行。
+	条件变量与互斥量一起使用时，允许线程以无竞争的方式等待特定的条件发生。条件本身是由互斥量保护的。线程在改变条件状态之前必须首先锁住互斥量。互斥量必须在锁定以后才能计算条件。条件变量可以用两种方式
+	初始化，可以把常量PTHREAD_COND_INITIALIZER赋给静态分配的条件变量。如果是动态分配的，则需要使用pthread_cond_init函数对它进行初始化。释放条件变量底层的内存空间之前，可以使用pthread_cond_destroy函数进行反初始化。
+	API:pthread_cond_wait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex);接收两个指针，一个是条件变量的指针，第二个是互斥量的指针。为了防止竞争，条件变量的使用总是和一个互斥锁结合在一起。
+	传递给pthread_cond_wait的互斥量对条件进行保护。
+	无论哪种等待方式，都必须和一个互斥锁配合，以防止多个线程同时请求pthread_cond_wait()（或pthread_cond_timedwait()，下同）的竞争条件（Race Condition）。mutex互斥锁必须是普通锁（PTHREAD_MUTEX_TIMED_NP）
+	或者适应锁（PTHREAD_MUTEX_ADAPTIVE_NP），且在调用pthread_cond_wait()前必须由本线程加锁（pthread_mutex_lock()），而在更新条件等待队列以前，mutex保持锁定状态，并在线程挂起进入等待前解锁。在条件满足从而离开
+	pthread_cond_wait()之前，mutex将被重新加锁，以与进入pthread_cond_wait()前的加锁动作对应。
+	关于条件变量的理解：http://www.ibm.com/developerworks/cn/linux/thread/posix_thread3/#1。如果没有收到signal信号前，pthread_cond_wait会阻塞到调用点，收到此信号从调用点返回。
+	在pthread_cond_wait函数内部，它获得互斥量后，在使调用线程进入阻塞状态之前，会调用pthread_mutex_unlock函数进行解锁（因为阻塞后如果不解锁，那个互斥锁会被阻塞线程长期持有，导致别的线程无法加入等待队列，所以阻塞前要释放互斥锁）；
+	而在线程被唤醒之后，在pthread_cond_wait函数返回之前，又会调用pthread_mutex_lock函数进行加锁（因为需要修改等待队列）。
+	因此，需要等待的线程在调用pthread_cond_wait函数时，应该按照下面顺序执行：
+	1.调用pthread_mutex_lock（）函数。
+	2.调用pthread_cond_wait函数（）
+	3.调用pthread_mutex_unlock()函数。
+	唤醒signal应该在wait之后调用，才能唤醒wait的线程。	由于因为pthread_cond_wait里的线程可能会被意外唤醒，所以在pthread_cond_wait前面一般需要加一个while(flag）的判断，以判断pthread_cond_wait是否被指定的Wakeup函数唤醒的。
+	所以，对于被等待线程而言，需要按照下列步骤执行signal：
+	1.调用pthread_mutex_lock函数加锁。
+	2.flag=1；
+	3.调用pthread_mutex_unlock函数解锁.
+	4.调用pthread_cond_signal函数唤醒等待线程（从性能的角度考虑signal应该放在临界区外）。
+	
+	
+	
+	
+	
 	
 	
 	

@@ -13,6 +13,7 @@
 
 class CLMutex
 {
+friend class CLConditionVariable;
 public:
 	CLMutex();
 	virtual ~CLMutex();

@@ -12,11 +12,12 @@
 #include"CLStatus.h"
 #include"CLExecutive.h"
 #include"CLExecutiveFunctionProvider.h"
+#include"CLEvent.h"
 
 class CLThread:public CLExecutive
 {
 public:
-	CLThread(CLCoordinator *pCoordinator);
+	CLThread(CLCoordinator *pCoordinator,bool bWaitForDeath);
 	virtual ~CLThread();
 	virtual CLStatus Run(void *pContext = 0);
 	virtual CLStatus WaitForDeath();
@@ -25,6 +26,10 @@ private:
 protected:
 	void *m_pContext;
 	pthread_t m_ThreadID;
+	bool m_bThreadCreated;
+	bool m_bWaitForDeath;
+	CLEvent m_EventForWaitingForNewThread;
+	CLEvent m_EventForWaitingForOldThread;
 };
 
 

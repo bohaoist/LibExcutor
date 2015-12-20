@@ -11,24 +11,19 @@
 #include"CLMutex.h"
 #include<iostream>
 using namespace std;
-int main_cond_wait_signal()
+int main()
 {
-	SPara *p = new SPara;
-	p->flag = false;
+	CLEvent *pEvent = (CLEvent *) new CLEvent();
 	CLCoordinator *pCoordinator = new CLRegularCoordinator();
 	//CLExecutiveFunctionProvider * printer = new CLParaPrinter();
 	CLMyFunction *myfunc = new CLMyFunction();
-	CLExecutive *pThread = new CLThread(pCoordinator);
+	CLExecutive *pThread = new CLThread(pCoordinator,true);
 	pCoordinator->SetExecObjects(pThread,myfunc);
-	pCoordinator->Run((void*)p);
+	cout <<"Status Code: "<<pCoordinator->Run((void*)pEvent).m_clReturnCode<<endl;
 
-	{
-		CLCriticalSection cs(&(p->mutex));
-		while(p->flag == false)
-			p->condition.Wait(&p->mutex);
-		cout <<"I received signal. " << endl;
-	}
-
+	pEvent->Wait();
+	cout << "main thread: i received signal." << endl;
+	pCoordinator->WaitForDeath();
 	//pCoordinator->WaitForDeath();
 	return 0;
 }

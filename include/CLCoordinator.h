@@ -16,7 +16,7 @@ class CLCoordinator
 {
 public:
 	CLCoordinator();
-	~CLCoordinator();
+	virtual ~CLCoordinator();
 	void SetExecObjects(CLExecutive *pExecutive, CLExecutiveFunctionProvider *pProvider);
 	virtual CLStatus Run(void *pContext) = 0;
 	virtual CLStatus ReturnControlRight() = 0;

@@ -15,7 +15,7 @@ class CLRegularCoordinator:public CLCoordinator
 {
 public:
 	CLRegularCoordinator();
-	~CLRegularCoordinator();
+	virtual ~CLRegularCoordinator();
 	virtual CLStatus Run(void *pContext);
 	virtual CLStatus ReturnControlRight();
 	virtual CLStatus WaitForDeath();

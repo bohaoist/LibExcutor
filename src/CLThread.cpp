@@ -8,9 +8,9 @@
 #include"CLLogger.h"
 #include"CLThread.h"
 #include"CLCoordinator.h"
-
+#include<iostream>
 CLThread::CLThread(CLCoordinator *pCoordinator,bool bWaitForDeath)
-		:CLExecutive(pCoordinator),m_bThreadCreated(false),m_bWaitForDeath(bWaitForDeath)
+		:CLExecutive(pCoordinator),m_bThreadCreated(false),m_bWaitForDeath(bWaitForDeath),m_pContext(0)
 {
 
 }
@@ -52,6 +52,7 @@ CLStatus CLThread::Run(void *pContext)  //如果新创建的线程还要创建�
 	CLStatus s1 = m_EventForWaitingForOldThread.Set();//通知被创建线程继续执行
 	if(!s1.IsSuccess())
 	{
+		std::cout<<"In CLThread::Run(), m_EventForWaitingForOldThread.Set() error" <<std::endl;
 		CLLogger::WriteLogMesg("In CLThread::Run(), m_EventForWaitingForOldThread.Set() error", 0);
 		return CLStatus(-1, 0);
 	}
@@ -80,7 +81,19 @@ void * CLThread::StartFunctionOfThread(void *pContext)
 {
 	CLThread *pThreadThis = (CLThread *)pContext;
 	CLStatus s1 = pThreadThis->m_EventForWaitingForNewThread.Set();//通知创建线程者新线程已经创建好了
+	if(!s1.IsSuccess())
+	{
+		CLLogger::WriteLogMesg("In CLThread::StartFunctionOfThread(), m_EventForWaitingForNewThread.Set error", 0);
+	}
+
+	//std::cout<<"i'm run in  before wait" <<std::endl;
 	CLStatus s2 = pThreadThis->m_EventForWaitingForOldThread.Wait();//等待主创建线程通知可以继续执行命令
+	if(!s2.IsSuccess())
+	{
+		CLLogger::WriteLogMesg("In CLThread::StartFunctionOfThread(), m_EventForWaitingForOldThread.Wait error", 0);
+	}
+
+	//std::cout<<"i'm run in new thread." <<std::endl;
 	CLStatus s = pThreadThis->m_pCoordinator->ReturnControlRight();
 	if(!pThreadThis->m_bWaitForDeath)
 		delete pThreadThis;

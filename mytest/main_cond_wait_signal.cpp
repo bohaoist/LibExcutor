@@ -11,7 +11,7 @@
 #include"CLMutex.h"
 #include<iostream>
 using namespace std;
-int main()
+int main_ss()
 {
 	CLEvent *pEvent = (CLEvent *) new CLEvent();
 	CLCoordinator *pCoordinator = new CLRegularCoordinator();

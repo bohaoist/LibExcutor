@@ -5,7 +5,10 @@
 #include"CLRegularCoordinator.h"
 #include"CLExecutiveFunctionForMsgLoop.h"
 #include<iostream>
-
+#include"CLExecutiveNameServer.h"
+#include<unistd.h>
+#include"CLThreadForMsgLoop.h"
+#include<string>
 /*int main_dd()
 {
 	CLMessageQueueBySTLqueue *q = new CLMessageQueueBySTLqueue();
@@ -57,7 +60,7 @@
 	return 0;
 }*/
 
-int main()
+/*int main()//没有名字服务
 {
 	CLMessageQueueBySTLqueue *pQ = new CLMessageQueueBySTLqueue();
 	CLMessageObserver * myFunc = new CLMyMsgProcessor();
@@ -77,5 +80,42 @@ int main()
 	pQ->PushMessage(quit);
 	pCoordinator->WaitForDeath();
 	///std::cout<<"padmsg: "<<paddmsg3->m_clOp1<<std::endl;
+	return 0;
+}*/
+
+/*int main()//有名字服务
+{
+	CLMessageObserver * myFunc = new CLMyMsgProcessor();
+	CLMessageLoopManager* pM = new CLMsgLoopManagerForSTLqueue(myFunc,"adder");
+	CLCoordinator *pCoordinator = new CLRegularCoordinator();
+	CLExecutiveFunctionForMsgLoop *myadder = new CLExecutiveFunctionForMsgLoop(pM);
+	CLThread *pThread= new CLThread(pCoordinator, true);
+	pCoordinator->SetExecObjects(pThread,myadder);
+	pCoordinator->Run(0);
+	sleep(2);
+	CLExecutiveNameServer::PostExecutiveMessage("adder",new CLAddMessage(2,4));
+	CLExecutiveNameServer::PostExecutiveMessage("adder",new CLAddMessage(4,5));
+	CLExecutiveNameServer::PostExecutiveMessage("adder",new CLAddMessage(8,9));
+	CLExecutiveNameServer::PostExecutiveMessage("adder",new CLQuitMessage);
+	pCoordinator->WaitForDeath();
+	return 0;
+}*/
+
+int main_Adder() //加入初始化同步，不用sleep（2）
+{
+	try{
+	CLMessageObserver * myFunc = new CLMyMsgProcessor();
+	CLThreadForMsgLoop t(myFunc,"adder", true);
+	t.Run(0);
+
+	CLExecutiveNameServer::PostExecutiveMessage("adder",new CLAddMessage(2,4));
+	CLExecutiveNameServer::PostExecutiveMessage("adder",new CLAddMessage(4,5));
+	CLExecutiveNameServer::PostExecutiveMessage("adder",new CLAddMessage(8,9));
+	CLExecutiveNameServer::PostExecutiveMessage("adder",new CLQuitMessage);
+
+	}catch(std::string s){
+		std::cout << "wrong." << std::endl;
+	}
+
 	return 0;
 }

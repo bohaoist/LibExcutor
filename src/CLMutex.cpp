@@ -6,7 +6,7 @@
  */
 #include<pthread.h>
 #include"CLMutex.h"
-
+#include<iostream>
 CLMutex::CLMutex()
 {
 	if(pthread_mutex_init(&m_Mutex,0) != 0){
@@ -23,7 +23,10 @@ CLMutex::~CLMutex()
 
 CLStatus CLMutex::Lock()
 {
+//	int code = pthread_mutex_lock(&m_Mutex);
 	if(pthread_mutex_lock(&m_Mutex) != 0){
+//	if(code != 0){
+//		std::cout<<"pthread_mutex_lock code:"<<code<<std::endl;
 		return CLStatus(-1,0);
 	}
 	return CLStatus(0,0);

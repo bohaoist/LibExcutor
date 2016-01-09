@@ -20,7 +20,7 @@
 
 
 CLLogger * CLLogger::m_pLogger = NULL;
-pthread_mutex_t *CLLogger::m_pMutexForCreatingLogger = CLLogger::InitializeMutex();//它由谁来释放？
+pthread_mutex_t *CLLogger::m_pMutexForCreatingLogger = CLLogger::InitializeMutex();//它由谁来释放？不释放，等到程序结束操作系统释放因为它整个程序运行期间存在，且只要一个
 
 pthread_mutex_t *CLLogger::InitializeMutex()
 {
@@ -63,6 +63,8 @@ CLLogger::~CLLogger() {
 	}
 	if(m_pMutexForWritingLog !=NULL)
 			delete m_pMutexForWritingLog;
+/*	if(m_pMutexForCreatingLogger !=NULL)
+				delete m_pMutexForCreatingLogger;*/
 }
 
 CLLogger * CLLogger::GetInstance(){

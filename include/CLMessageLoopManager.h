@@ -12,6 +12,8 @@
 #include"CLMessage.h"
 #include"CLMessageObserver.h"
 #include<map>
+#include"CLThreadInitialFinishedNotifier.h"
+
 #define QUIT_MESSAGE_LOOP 1  //注意此定义要和处理完退出消息后的返回码一致，可以写一个头文件专门定义常量
 /*要封装消息循环，即：
 while(true)
@@ -22,6 +24,12 @@ while(true)
 同时需要消息循环用来封装两个变化点：1.消息队列的具体实现的变化（如队列，管道，网络）2.所执行的业务逻辑*/
 
 typedef CLStatus (CLMessageObserver::*CallBackForMessageLoop)(CLMessage *);
+
+struct SLExecutiveInitialParameter  //用来打包通知变量和运行参数
+{
+	void *pContext;
+	CLThreadInitialFinishedNotifier* pNotifier;
+};
 
 class CLMessageLoopManager
 {

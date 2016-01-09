@@ -9,6 +9,7 @@
 #include"CLThread.h"
 #include"CLCoordinator.h"
 #include<iostream>
+#include<string>
 CLThread::CLThread(CLCoordinator *pCoordinator,bool bWaitForDeath)
 		:CLExecutive(pCoordinator),m_bThreadCreated(false),m_bWaitForDeath(bWaitForDeath),m_pContext(0)
 {
@@ -79,6 +80,7 @@ CLStatus CLThread::WaitForDeath()
 
 void * CLThread::StartFunctionOfThread(void *pContext)
 {
+//	try{
 	CLThread *pThreadThis = (CLThread *)pContext;
 	CLStatus s1 = pThreadThis->m_EventForWaitingForNewThread.Set();//通知创建线程者新线程已经创建好了
 	if(!s1.IsSuccess())
@@ -98,4 +100,9 @@ void * CLThread::StartFunctionOfThread(void *pContext)
 	if(!pThreadThis->m_bWaitForDeath)
 		delete pThreadThis;
 	return (void * )s.m_clReturnCode;
+//	}catch(std::string s)
+//	{
+//		std::cout<< s <<" In CLThread::StartFunctionOfThread()"<<std::endl;
+//		CLLogger::WriteLogMesg("In CLThread::StartFunctionOfThread() end error", -1);
+//	}
 }

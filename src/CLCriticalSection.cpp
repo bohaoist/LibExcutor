@@ -19,7 +19,7 @@ CLCriticalSection::CLCriticalSection(CLMutex *pMutex)
 	if(!s.IsSuccess())
 	{
 		CLLogger::WriteLogMesg("In CLCriticalSection::CLCriticalSection(), m_pMutex->Lock() error.",0);
-				throw "In CLCriticalSection::CLCriticalSection(), m_pMutex->Lock error";
+		throw "In CLCriticalSection::CLCriticalSection(), m_pMutex->Lock error";
 	}
 }
 

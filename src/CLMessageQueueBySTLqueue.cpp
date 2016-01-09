@@ -49,7 +49,10 @@ CLMessage * CLMessageQueueBySTLqueue::Pop()
 	{
 		CLCriticalSection cs(&m_Mutex);
 		if(m_qMessageQueue.empty())
-			{std::cout <<"queue is empyt!" << std::endl;return 0;}
+		{
+			//std::cout <<"queue is empyt!" << std::endl;
+			return 0;
+		}
 		CLMessage *p = m_qMessageQueue.front();
 		m_qMessageQueue.pop();
 		return p;

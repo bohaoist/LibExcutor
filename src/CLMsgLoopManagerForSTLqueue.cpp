@@ -7,7 +7,7 @@
 #include"CLMsgLoopManagerForSTLqueue.h"
 #include"CLExecutiveNameServer.h"
 #include"CLThreadCommunicationBySTLqueue.h"
-#include"CLLogger.h"
+#include <CLLogger_old_h>
 
 CLMsgLoopManagerForSTLqueue::CLMsgLoopManagerForSTLqueue(CLMessageObserver *pMessageObserver,
 		CLMessageQueueBySTLqueue *pMsgQueue):CLMessageLoopManager(pMessageObserver)

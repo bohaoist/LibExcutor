@@ -33,6 +33,8 @@ public:
 	CLStatus Register(const char * strExecutiveName, CLExecutiveCommunication *pExecutiveCommunication);
 	CLExecutiveCommunication* GetCommunicationPtr(const char *strExecutiveName);
 	CLStatus ReleaseCommunicationPtr(const char * strExecutiveName);
+	static CLStatus Create();
+	static CLStatus Destroy();
 private:
 	static CLExecutiveNameServer *m_pNameServer;
 	static CLMutex m_Mutex;//创建或操作单例对象的时候用来互斥。

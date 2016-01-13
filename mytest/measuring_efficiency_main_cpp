@@ -8,7 +8,6 @@
  * measuring_efficiency_with_difference_buffsize
  * */
 
-#include "CLLogger.h"
 #include <iostream>
 #include <cstdio>
 #include <sys/time.h>
@@ -16,6 +15,7 @@
 #include <unistd.h>
 #include <error.h>
 #include <string.h>
+#include <CLLogger_old_h>
 using namespace std;
 int main_efficiency(int argc, char ** argv){
 

@@ -5,7 +5,7 @@
  *      Author: haobo
  */
 #include"CLThreadInitialFinishedNotifier.h"
-#include"CLLogger.h"
+#include <CLLogger_old_h>
 
 CLThreadInitialFinishedNotifier::CLThreadInitialFinishedNotifier(CLEvent *pEvent)
 {

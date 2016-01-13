@@ -5,7 +5,7 @@
  *      Author: haobo
  */
 #include"CLCriticalSection.h"
-#include"CLLogger.h"
+#include <CLLogger_old_h>
 
 CLCriticalSection::CLCriticalSection(CLMutex *pMutex)
 {

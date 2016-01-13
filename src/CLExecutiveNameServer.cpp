@@ -6,7 +6,7 @@
  */
 #include"CLExecutiveNameServer.h"
 #include"CLCriticalSection.h"
-#include"CLLogger.h"
+#include <CLLogger_old_h>
 
 CLExecutiveNameServer* CLExecutiveNameServer::m_pNameServer = 0;
 //pthread_mutex_t CLExecutiveNameServer::m_Mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -145,4 +145,28 @@ CLStatus CLExecutiveNameServer::ReleaseCommunicationPtr(const char *strExecutive
 	if(pTmp != 0)
 		delete pTmp;
 	return CLStatus(0,0);
+}
+
+CLStatus CLExecutiveNameServer::Create()
+{
+	if(m_pNameServer == 0)
+		m_pNameServer = new CLExecutiveNameServer;
+
+	return CLStatus(0, 0);
+}
+
+CLStatus CLExecutiveNameServer::Destroy()
+{
+	if(m_pNameServer == 0)
+		return CLStatus(0, 0);
+
+	//CLMutex mutex(&m_Mutex); //拷贝构造
+	//CLMutex mutex;
+	CLCriticalSection cs(&m_Mutex);
+
+	delete m_pNameServer;
+
+	m_pNameServer = 0;
+
+	return CLStatus(0, 0);
 }

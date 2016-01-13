@@ -6,12 +6,12 @@
  */
 #include"CLThreadForMsgLoop.h"
 #include<string.h>
-#include"CLLogger.h"
 #include"CLStatus.h"
 #include"CLThreadInitialFinishedNotifier.h"
 #include"CLMessageLoopManager.h"
 #include"CLMsgLoopManagerForSTLqueue.h"
 #include"CLExecutiveFunctionForMsgLoop.h"
+#include <CLLogger_old_h>
 #include<iostream>
 CLThreadForMsgLoop::CLThreadForMsgLoop(CLMessageObserver *pMsgObserver, const char *pstrThreadName)
 {

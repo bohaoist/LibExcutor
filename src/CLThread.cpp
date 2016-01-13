@@ -5,9 +5,9 @@
  *      Author: haobo
  */
 
-#include"CLLogger.h"
 #include"CLThread.h"
 #include"CLCoordinator.h"
+#include <CLLogger_old_h>
 #include<iostream>
 #include<string>
 CLThread::CLThread(CLCoordinator *pCoordinator,bool bWaitForDeath)

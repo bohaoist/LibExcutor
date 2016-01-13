@@ -57,7 +57,7 @@ public:
 	}
 };
 
-int main()
+int main_NOthread()
 {
 	CLMessageObserver *m=new CLMainObserver();
 	CLNonThreadForMsgLoop p(m,"main");

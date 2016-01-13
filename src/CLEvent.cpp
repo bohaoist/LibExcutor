@@ -7,7 +7,7 @@
 #include"CLEvent.h"
 #include"CLStatus.h"
 #include"CLCriticalSection.h"
-#include"CLLogger.h"
+#include <CLLogger_old_h>
 
 CLEvent::CLEvent():m_Flag(0),m_bSemaphore(false)
 {

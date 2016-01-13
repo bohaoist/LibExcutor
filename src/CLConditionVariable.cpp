@@ -5,7 +5,7 @@
  *      Author: haobo
  */
 #include"CLConditionVariable.h"
-#include"CLLogger.h"
+#include <CLLogger_old_h>
 
 CLConditionVariable::CLConditionVariable()
 {

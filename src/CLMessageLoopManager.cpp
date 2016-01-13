@@ -7,7 +7,7 @@
  */
 #include"CLMessageLoopManager.h"
 #include"CLStatus.h"
-#include"CLLogger.h"
+#include <CLLogger_old_h>
 
 CLMessageLoopManager::CLMessageLoopManager(CLMessageObserver *pMessageObserver):m_pMessageOberver(pMessageObserver)
 {

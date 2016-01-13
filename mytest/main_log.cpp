@@ -4,11 +4,10 @@
  *  Created on: Dec 15, 2015
  *      Author: haobo
  */
-#include"CLLogger.h"
-
 #include <iostream>
 #include<pthread.h>
 #include<unistd.h>
+#include <CLLogger_old_h>
 using namespace std;
 
 void *thread1(void *arg)

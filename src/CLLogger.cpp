@@ -147,6 +147,33 @@ CLLogger* CLLogger::GetInstance()
 	return m_pLog;
 }
 
+int CLLogger::WriteOfProcessSafety(int fd = m_Fd,const void *buff,size_t nBytes)
+{
+	struct flock lock;
+	lock.l_type = F_WRLCK;
+	lock.l_start = 0;
+	lock.l_whence = SEEK_END;
+	lock.l_len = 0;
+
+	if(fcntl(fd,F_SETLKW,&lock) == -1)
+		return -1;
+	ssize_t writedbytes = write(fd,buff,nBytes);
+	if(writedbytes == -1)
+	{
+		CLLogger::WriteLogMesg("In CLLogger::WriteOfProcessSafety, write error.",errno);
+		return writedbytes;
+	}
+
+	lock.l_type = F_UNLCK;
+	lock.l_start = -writedbytes;
+	lock.l_whence = SEEK_END;
+	lock.l_len = 0;
+
+	fcntl(fd,F_SETLKW,&lock);
+
+	return writedbytes;
+}
+
 CLStatus CLLogger::Create()
 {
 	if(m_pLog != 0)

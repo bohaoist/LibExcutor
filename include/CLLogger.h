@@ -19,8 +19,9 @@ public:
 private:
 	static CLStatus Destroy();
 	static CLStatus Create();
+	int WriteOfProcessSafety(int fd,const void *buff,size_t nBytes);  //记录锁
 
-	static CLStatus WriteMsgAndErrcodeToFile(int fd, const char *pstrMsg, const char *pstrErrcode);
+	static CLStatus WriteMsgAndErrcodeToFile(int fd, const char *pstrMsg, const char *pstrErrcode);//包含了记录锁
 
 private:
 	CLLogger(const CLLogger&);

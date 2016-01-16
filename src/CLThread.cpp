@@ -7,7 +7,7 @@
 
 #include"CLThread.h"
 #include"CLCoordinator.h"
-#include <CLLogger_old_h>
+#include "CLLogger.h"
 #include<iostream>
 #include<string>
 CLThread::CLThread(CLCoordinator *pCoordinator,bool bWaitForDeath)
@@ -15,6 +15,12 @@ CLThread::CLThread(CLCoordinator *pCoordinator,bool bWaitForDeath)
 {
 
 }
+
+//CLThread::CLThread(CLExecutiveFunctionProvider *pExecutiveFunctionProvider,bool bWaitForDeath):CLExecutive(0)
+//{
+//	m_pExecutiveFunctionProvider = pExecutiveFunctionProvider;
+//	m_bWaitForDeath = bWaitForDeath;
+//}
 
 CLThread::~CLThread()
 {

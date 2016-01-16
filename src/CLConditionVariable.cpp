@@ -5,8 +5,8 @@
  *      Author: haobo
  */
 #include"CLConditionVariable.h"
-#include <CLLogger_old_h>
-
+#include "CLLogger.h"
+#include"CLMutexByPThread.h"
 CLConditionVariable::CLConditionVariable()
 {
 	if(pthread_cond_init(&m_ConditionVariable,0)){
@@ -25,12 +25,39 @@ CLConditionVariable::~CLConditionVariable()
 
 CLStatus CLConditionVariable::Wait(CLMutex *pMutex)
 {
-	if(pthread_cond_wait(&m_ConditionVariable,&(pMutex->m_Mutex))){ //m_Mutex是私有的啊，应该无法访问！
-		throw "In CLConditionVariable::~CLConditionVariable(), pthread_cond_destroy error.";
-		CLLogger::WriteLogMesg("In CLConditionVariable::~CLConditionVariable(), pthread_cond_destroy error.",0);
-		return CLStatus(-1,0);
+	if(pMutex == NULL)
+		return CLStatus(-1, 0);
+
+	CLMutexInterface *pInterface = pMutex->GetMutexInterface();
+	CLMutexByPThread *p1 = dynamic_cast<CLMutexByPThread *>(pInterface);
+	//CLMutexBySharedPThread *p2 = dynamic_cast<CLMutexBySharedPThread *>(pInterface);
+
+	int r = 0;
+	if(p1 != NULL)
+	{
+		r = pthread_cond_wait(&m_ConditionVariable, p1->GetMutexPointer());
 	}
-	return CLStatus(0,0);
+	else
+	{
+		CLLogger::WriteLogMesg("In CLConditionVariable::Wait, pMutex error", 0);
+		return CLStatus(-1, 0);
+	}
+
+	if(r != 0)
+	{
+		CLLogger::WriteLogMesg("In CLConditionVariable::Wait, pthread_cond_wait error", r);
+		return CLStatus(-1, 0);
+	}
+	else
+	{
+		return CLStatus(0, 0);
+	}
+//	if(pthread_cond_wait(&m_ConditionVariable,(pMutex->m_pMutex->GetMutexPointer()))){ //m_Mutex是私有的啊，应该无法访问！
+//		throw "In CLConditionVariable::~CLConditionVariable(), pthread_cond_destroy error.";
+//		CLLogger::WriteLogMesg("In CLConditionVariable::~CLConditionVariable(), pthread_cond_destroy error.",0);
+//		return CLStatus(-1,0);
+//	}
+//	return CLStatus(0,0);
 }
 
 CLStatus CLConditionVariable::Wakeup()

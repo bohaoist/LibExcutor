@@ -147,7 +147,7 @@ CLLogger* CLLogger::GetInstance()
 	return m_pLog;
 }
 
-int CLLogger::WriteOfProcessSafety(int fd = m_Fd,const void *buff,size_t nBytes)
+int CLLogger::WriteOfProcessSafety(int fd,const void *buff,size_t nBytes)
 {
 	struct flock lock;
 	lock.l_type = F_WRLCK;

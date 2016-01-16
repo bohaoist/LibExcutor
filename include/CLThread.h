@@ -18,6 +18,7 @@ class CLThread:public CLExecutive
 {
 public:
 	CLThread(CLCoordinator *pCoordinator,bool bWaitForDeath);
+//	CLThread(CLExecutiveFunctionProvider *pExecutiveFunctionProvider,bool bWaitForDeath);  //用于直接运行业务逻辑，去掉coordinator
 	virtual ~CLThread();
 	virtual CLStatus Run(void *pContext = 0);
 	virtual CLStatus WaitForDeath();
@@ -30,6 +31,8 @@ protected:
 	bool m_bWaitForDeath;
 	CLEvent m_EventForWaitingForNewThread;
 	CLEvent m_EventForWaitingForOldThread;
+
+//	CLExecutiveFunctionProvider *m_pExecutiveFunctionProvider
 };
 
 

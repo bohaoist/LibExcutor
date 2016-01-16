@@ -1,15 +1,15 @@
 /*
- * CLMutexByThread.cpp
+ * CLMutexByPThread.cpp
  *
  *  Created on: Jan 15, 2016
  *      Author: haobo
  */
 
+#include <CLMutexByPThread.h>
 #include<pthread.h>
-#include"CLMutexByThread.h"
 #include"CLLogger.h"
 
-CLMutexByThread::CLMutexByThread()
+CLMutexByPThread::CLMutexByPThread()
 {
 	m_pMutex = new pthread_mutex_t;
 	m_bNeedDestory = true;
@@ -23,7 +23,7 @@ CLMutexByThread::CLMutexByThread()
 	}
 }
 
-CLMutexByThread::CLMutexByThread(pthread_mutex_t * pMutex)
+CLMutexByPThread::CLMutexByPThread(pthread_mutex_t * pMutex)
 {
 	if(pMutex == 0)
 		throw "In CLMutexByPThread::CLMutexByPThread(), pMutex is 0";
@@ -32,41 +32,41 @@ CLMutexByThread::CLMutexByThread(pthread_mutex_t * pMutex)
 }
 
 
-CLMutexByThread::~CLMutexByThread()
+CLMutexByPThread::~CLMutexByPThread()
 {
 	if(m_bNeedDestory)
 	{
 		int r = pthread_mutex_destroy(m_pMutex);
 		if(r == -1)
 		{
-			CLLogger::WriteLogMesg("In CLMutexByThread::~CLMutexByThread(), pthread_mutex_destroy error.",r);
+			CLLogger::WriteLogMesg("In CLMutexByPThread::~CLMutexByPThread(), pthread_mutex_destroy error.",r);
 		}
 		delete m_pMutex;
 	}
 }
 
 
-CLStatus CLMutexByThread::Initialize()
+CLStatus CLMutexByPThread::Initialize()
 {
 	return CLStatus(0,0);
 }
-CLStatus CLMutexByThread::Uninitialize()
+CLStatus CLMutexByPThread::Uninitialize()
 {
 	return CLStatus(0,0);
 }
 
-CLStatus CLMutexByThread::Lock()
+CLStatus CLMutexByPThread::Lock()
 {
 	int r = pthread_mutex_lock(m_pMutex);
 	if(r == -1)
 	{
-		CLLogger::WriteLogMesg("In CLMutexByThread::Lock(), pthread_mutex_lock error. ",r);
+		CLLogger::WriteLogMesg("In CLMutexByPThread::Lock(), pthread_mutex_lock error. ",r);
 		return CLStatus(-1,r);
 	}
 	return CLStatus(0,0);
 
 }
-CLStatus CLMutexByThread::Unlock()
+CLStatus CLMutexByPThread::Unlock()
 {
 	int r = pthread_mutex_unlock(m_pMutex);
 	if(r == -1)
@@ -78,7 +78,7 @@ CLStatus CLMutexByThread::Unlock()
 	return CLStatus(0, 0);
 }
 
-pthread_mutex_t * CLMutexByThread::GetMutexPointer()
+pthread_mutex_t * CLMutexByPThread::GetMutexPointer()
 {
 	return m_pMutex;
 }

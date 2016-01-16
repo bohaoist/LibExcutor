@@ -5,11 +5,13 @@
  *      Author: haobo
  */
 
-#include"CLMutexByRecordLocking.h"
+
 #include<string.h>
 #include<unistd.h>
 #include<fcntl.h>
 #include<errno.h>
+#include"CLLogger.h"
+#include"CLMutexByRecordLocking.h"
 
 CLMutexByRecordLocking::CLMutexByRecordLocking(const char *pstrFileName)
 {
@@ -17,21 +19,11 @@ CLMutexByRecordLocking::CLMutexByRecordLocking(const char *pstrFileName)
 		throw "In CLMutexByRecordLocking::CLMutexByRecordLocking, pstrFileName error.";
 	m_strFileName = FILE_PATH_FOR_RECORD_LOCKING;
 	m_strFileName += pstrFileName;
-	m_Fd = open(m_strFileName.c_str(), O_RDWR | O_CREAT , S_IRUSR | S_IWUSR);
-	if(m_Fd == -1)
-	{
-		CLLogger::WriteLogMesg("In CLMutexByRecordLocking::Lock(), open error", errno);
-		throw strerror(errno);
-	}
 
 }
 CLMutexByRecordLocking::~CLMutexByRecordLocking()
 {
-	if(close(m_Fd) == -1)
-	{
-		CLLogger::WriteLogMesg("In CLMutexByRecordLocking:~CLMutexByRecordLocking(), close error", errno);
-		throw strerror(errno);
-	}
+
 }
 
 CLStatus CLMutexByRecordLocking::Initialize()
@@ -50,6 +42,13 @@ CLStatus CLMutexByRecordLocking::Lock()
 	lock.l_start = 0;
 	lock.l_whence = SEEK_SET;
 	lock.l_len = 0;
+
+	m_Fd = open(m_strFileName.c_str(), O_RDWR | O_CREAT , S_IRUSR | S_IWUSR);
+	if(m_Fd == -1)
+	{
+		CLLogger::WriteLogMesg("In CLMutexByRecordLocking::Lock(), open error", errno);
+		throw strerror(errno);
+	}
 
 	if(fcntl(m_Fd,F_SETLKW,&lock) == -1)
 	{
@@ -71,6 +70,11 @@ CLStatus CLMutexByRecordLocking::Unlock()
 	{
 		CLLogger::WriteLogMesg("In CLMutexByRecordLocking::Unlock(), fcntl error",errno);
 		return CLStatus(-1,errno);
+	}
+	if(close(m_Fd) == -1)
+	{
+		CLLogger::WriteLogMesg("In CLMutexByRecordLocking::Unlock(), close error", errno);
+		throw strerror(errno);
 	}
 	return CLStatus(0,0);
 }

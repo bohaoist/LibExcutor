@@ -1,23 +1,23 @@
 /*
- * CLMutexByThread.h
+ * CLMutexByPThread.h
  *
  *  Created on: Jan 15, 2016
  *      Author: haobo
  */
 
-#ifndef CLMUTEXBYTHREAD_H_
-#define CLMUTEXBYTHREAD_H_
+#ifndef CLMUTEXBYPTHREAD_H_
+#define CLMUTEXBYPTHREAD_H_
 
 #include<pthread.h>
 #include"CLMutexInterface.h"
 #include"CLStatus.h"
 
-class CLMutexByThread:public CLMutexInterface
+class CLMutexByPThread:public CLMutexInterface
 {
 public:
-	CLMutexByThread();
-	explicit CLMutexByThread(pthread_mutex_t *pMutex);
-	virtual ~CLMutexByThread();
+	CLMutexByPThread();
+	explicit CLMutexByPThread(pthread_mutex_t *pMutex);
+	virtual ~CLMutexByPThread();
 	virtual CLStatus Initialize();
 	virtual CLStatus Uninitialize();
 
@@ -27,8 +27,8 @@ public:
 	pthread_mutex_t * GetMutexPointer();
 
 private:
-	CLMutexByThread(const CLMutexByThread & mutex);
-	CLMutexByThread & operator = (const CLMutexByThread &mutex);
+	CLMutexByPThread(const CLMutexByPThread & mutex);
+	CLMutexByPThread & operator = (const CLMutexByPThread &mutex);
 
 private:
 	pthread_mutex_t *m_pMutex;
@@ -38,4 +38,4 @@ private:
 
 
 
-#endif /* CLMUTEXBYTHREAD_H_ */
+#endif /* CLMUTEXBYPTHREAD_H_ */

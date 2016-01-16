@@ -32,7 +32,7 @@
 //}
 
 
-int main()
+int main_process()
 {
 	if(!CLLibExecutiveInitializer::Initialize().IsSuccess())
 	{

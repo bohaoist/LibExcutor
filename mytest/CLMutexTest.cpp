@@ -47,7 +47,7 @@ public:
 	}
 };
 
-int main()
+int main_mutex_test()
 {
 	int fd = open("./a.txt",O_RDWR|O_CREAT,S_IRUSR|S_IWUSR);
 	long k = 0;

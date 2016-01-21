@@ -12,6 +12,9 @@
 #include "CLMutexByPThread.h"
 #include"CLMutexByRecordLocking.h"
 #include"CLMutexByRecordLockingAndPThread.h"
+#include"CLMutexBySharedPThread.h"
+#include"DefinitionForConst.h"
+
 CLMutex::CLMutex()
 {
 //旧版，只有pthread_mutex_t
@@ -67,6 +70,10 @@ CLMutex::CLMutex(const char *pstrFileName,int nType)
 	else if(nType == MUTEX_USE_RECORD_LOCK_AND_PTHREAD)
 	{
 		m_pMutex = new CLMutexByRecordLockingAndPThread(pstrFileName);
+	}
+	else if(nType == MUTEX_USE_SHARED_PTHREAD)
+	{
+		m_pMutex = new CLMutexBySharedPThread(pstrFileName);
 	}
 	else
 		throw "In CLMutex::CLMutex(),nType error.";

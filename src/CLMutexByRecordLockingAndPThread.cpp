@@ -6,6 +6,7 @@
  */
 #include"CLMutexByRecordLockingAndPThread.h"
 #include"CLLogger.h"
+#include"DefinitionForConst.h"
 CLMutexByRecordLockingAndPThread::CLMutexByRecordLockingAndPThread(const char *pstrFileName)
 :m_ProcessMutex(pstrFileName,MUTEX_USE_RECORD_LOCK)       //默认初始化CLMutex为phtread_mutex_t
 {

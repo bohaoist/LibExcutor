@@ -23,6 +23,20 @@ CLLogger:
 	
 	在构造函数中虽然不能有返回值表明构造出错（如无效参数等，初始化失败），但可以抛出throw异常给上级调用者，告诉它所发生的错误。
 	
+	只有A类能构造B类：将B类的构造函数和析构函数都声明为私有的，同时将A类声明为B类的友元类。
+	
+	模板类写法：初始化静态成员
+	template<typename TSharedObjectPool, typename TSharedObject>	CLSharedObjectAllocator<TSharedObjectPool,TSharedObject>* 
+CLSharedObjectAllocator<TSharedObjectPool,TSharedObject>::m_pAllocator = 0;
+
+	定义内联函数（模板特化）
+	template<>
+	inline CLMutex* CLSharedObjectAllocator<CLSharedMutexImpl, pthread_mutex_t>::GetMutex()
+	{
+		CLMutex* mutex = new CLMutex(MUTEX_FOR_SHARED_MUTEX_ALLOCATOR, &m_MutexForSharedMutex);
+		return mutex;
+	}
+	
 	c++ style:
 	if( -1 == w )，一定要不左值放在右边，防止不小心写成 if( w = -1)，避免错误
 	程序结束后用CLStatus返回执行状态并进行检查是个好习惯！很有必要！避免错误。

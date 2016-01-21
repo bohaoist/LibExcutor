@@ -5,7 +5,7 @@
  *      Author: haobo
  */
 
-#include <CLMutexByPThread.h>
+#include "CLMutexByPThread.h"
 #include<pthread.h>
 #include"CLLogger.h"
 
@@ -64,7 +64,6 @@ CLStatus CLMutexByPThread::Lock()
 		return CLStatus(-1,r);
 	}
 	return CLStatus(0,0);
-
 }
 CLStatus CLMutexByPThread::Unlock()
 {

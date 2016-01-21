@@ -307,6 +307,7 @@ CLLogger:
 	解决方案：CLMutexByRecordLockingAndPThread的加锁过程是先加pthread_mutex_t类型的互斥量锁，再加记录锁。解锁顺序相反。如果把文件的打开操作放在两个锁加锁之间，文件的关闭操作放在两个锁解锁之间，问题就解决了。这是因为获得pthread_mutex_t互斥量锁，就意味着同一进程内没有其他线程获得锁。又由于关闭文件时，处在记录锁已解锁，互斥量锁未解锁期间，因此，这时除了刚才获得记录锁的线程外，再不可能有其他线程调用close函数，从而导致记录锁被意外释放。
 	
 	int fcntl(int fd, int cmd, ...)，fcntl可用执行很多命令，由第二个参数cmd控制，而cmd同时决定着第三个参数和返回值的含义。调用失败返回-1.
+	封装记录锁的目的是后面封装共享互斥量，共享条件变量和共享事件对象的时候会用来进行进程间互斥创建共享互斥量池。记录锁作为最为原始的进程间通讯工具。
 	
 	工作目录：当我们使用fork或vfork创建子进程后，子进程就会继续父进程的工作目录，父进程的工作目录一般是运行目录。使用相对路径的时候切记要确认当前目录是什么，以免出错。
 	
@@ -321,9 +322,50 @@ CLLogger:
 	通过将pthread_mutex_t类型的互斥量放在进程间的共享区内，达到互斥的目的。
 	使用共享存储的若干相关进程，把自身地址空间中的某部分区域，在页表等机制的作用下，都映射到同一个物理存储区。32位处理器，段寄存器实际上就是段描述符索引。在全局描述符表寄存器GDTP或者局部扫描述符表寄存器LDTR的作用下，可以根据段描述符索引确定段基址。有了段基址，再加上偏移地址，就形成了线性地址。
 	用shmget函数创建或打开一个共享存储区域，之后在调用shmat函数将共享存储区域映射到调用进程的地址空间，映射后就可以开始使用了。当进程步骤需要在对共享存储区域进行操作，可以调用shmdt函数接触于共享存储区域的关系。当所有进程均不使用共享存储时，可以调用shmctl函数删除共享存储区域。
+	每一个共享区都有一个名字（和ftok生成共享区ID有关，ftok是基于文件名对应文件的Inod节点信息的，所以即使是相同的文件名，删除了之后再建立，得到的共享区ID也不同）。在创建共享存储区的时候，同过记录锁来互斥（也利用相同的文件名）。同时在用ftok生成共享区的ID的时候，也是利用这个文件的inod结点信息。
 	
+	共享互斥量封装
+	由于现在要将pthread_mutex_t用于进程间线程的同步，因此，需要将互斥量属性设为进程共享属性。
+	方法是：首先调用pthread_mutexattr_init函数对互斥量进行初始化，然后再调用pthread_mutexattr_setpshared函数将互斥量设为进程共享属性。这之后，才能调用pthread_mutex_init函数完成互斥量的初始化操作。当互斥量属性使用完毕后，需要调用pthread_mutexattr_destory函数销毁它。在线程互斥时，调用phtread_mutex_init时将第二个参数设置为了0，进程共享属性为PTHREAD_PROCESS_PRIVATE,即表示互斥量仅在进程内使用。
 	
+	共享互斥量的封装（用共享互斥量池来实现，池是单例的）
+	思考方法：首先，封装共享互斥量想要达到什么样的效果？---最好的效果就是，过去的互斥量怎么使用，现在的这个共享互斥量还是怎么使用。共享互斥量的使用，不同点主要体现在分配和初始化的过程上。而在分配方面，需要从共享存储区域分配互斥量。
+	如何分配共享对象的存储空间呢？
+	如果一个共享互斥量一个共享存储对象，如果共享存储对象太多的话，就会消耗太多的系统资源，这样代价太大。
+	所以，一个常见的做法是：构造一个共享互斥量池，这个池实际上也就是共享存储了。对于整个系统而言，执行体库的共享互斥量池应该是唯一的，且所有的相关进程都能访问到。在每个进程内，应该有且只有一个对象来管理这个池，显然这个共享互斥量池是单例的。在执行体库的初始化阶段，CLLibExecutiveInitializer类的Initialize函数中，完成对共享互斥量池及其管理对象的初始化操作。
+	因为有共享互斥量，共享条件变量和共享事件对象等多种共享变量以及其他共享元素，所以需要创建一个共享对象池的基类，让不同类别的共享对象分别继承共享对象池基类，从而实现不同类别的共享对象池。最终，不同类型的对象有不同类型的共享池：共享互斥量池，共享条件变量池，共享事件对象池（其中，共享事件对象池使用了共享条件变量池中的对象（通过给共享条件变量构造一个名字构造共享条件变量对象）和共享互斥量池中的对象（给构造函数一个名字，构造成共享互斥量）。
 	
+	共享对象池（将共享对象集中管理，避免分配太多分散的共享对象）：设计一个共享对象池，首先，需要先设计好这个共享对象池的内存布局，然后根据内存布局具体的实现。我们将共享对象池底地址的头4字节设为Magic Number，它的作用主要是判断一个共享对象池是否已经被初始化了。从第5字节开始，是共享对象池的内容部分，即一个一个连续的共享对象。其中每一个共享对象由一个共享对象头部和具体的共享对象内容组成。加入共享对象头部的主要作用是用来管理每个共享对象，因为每个对象都是共享的，所以需要给每个对象指明一个当前的状态（未初始化，已初始化，已分配），每个共享对象的引用计数（有几个进程在共享这个对象），以及每个共享对象都有一个名字（用名字来访问和获取共享对象）。
+	有了共享对象池的基类，具体类型的（共享互斥量池--！注意是共享互斥量池，基类是共享对象池）就由不同的子类来实现。
+	在整个系统中，应该只会有一个共享互斥量池。而在一个进程中，应该只会有一个对象来管理这个共享互斥量池。在执行体程序库被使用之前，需要创建这个管理共享互斥量池的唯一对象，并且完成池的初始化操作。用CLLibExecutiveInitializer类来完成初始化和销毁操作。现在需要将CLSharedMutexImpl类的对象创建工作和CLLibExecutiveInitializer关联起来。其次，就是为创建互斥量对象池加上同步操作。我们用一个新类CLSharedMutexAllocator类完成。（我们把CLSharedMutexImpl类的构造函数和析构函数都声明为private，并将CLSharedMutexAllocator声明为其友元，这样就只能通过CLSharedMutexAllocator类来创建和析构共享对象池CLSharedMutexImpl了）
+	CLSharedMutexAllocator类主要用来初始化共享互斥量池和对共享互斥量池进行互斥操作(通过记录锁和pthread_mutex_t的结合的互斥量来达到进程间互斥和线程间互斥的目标。)	封装共享互斥量想要达到的效果，对使用者而言，还是通过CLMutex类的接口来使用共享互斥量。所以我们要从CLMutexInterface类派生一个新类CLMutexBySharedPThread，实现从共享互斥量池分配，归还以及操作互斥量对象。
+	CLMutexBySharedPThread与其他CLMUteInterface不同之处在于每一个CLMutexBySharedPThread对象都有一个名称，要通过名称来在共享互斥量池中访问和释放共享互斥量对象。
+	CLMutexBySharedPThread类的Lock，Unlock函数的实现，和CLMutexByPthread类一样，就是调用pthread_mutex_lock, pthread_mutex_unlock函数。既然这两个函数实现方法类似，那么最好能复用重复的代码。回顾CLMutexByRecordLockingAndPThread类并不是直接使用pthread_mutex_t或者记录锁，而是通过使用CLMutex隐藏了CLMutexInterface继承体系。按照这个思路，范式要使用某一种互斥量，那么就得直接使用CLMutex类，而不是隐藏在它后面的其他类。也就是说，CLMutexBySharedPThread想要复用CLMutexByPThread类的代码，就得构造一个CLMutex类型的成员变量。利用CLMutex::CLMutex(pthread_mutex_t *pMutex)构造函数，将共享互斥量池中返回的pthread_mutex_t *pMutex指针传给它，就构造了CLMutexByPThread对象，因为它和共享互斥量的操作是一样的，所以就可以复用它的代码了。
+
+	*(已实现)因为CLSharedMutexAllocator（可变成CLSharedObjectAllocator）可以用来创建各种类型的共享（对象）池，所以可以考虑用模板来实现。
+	在指定内存地址分配对象的方法：以互斥量为例，用pthread_cond_init(&(pCondItem->cond),&attr)函数在指定的共享内存区域分配空间，定义struct SLSharedMutexItem结构主要是为了使用SLSharedMutexItem*的指针，构建这样一个内存结构，方便在初始化对象的时候指定对象内存的起始地址。对于自定义的对象，如共享事件对象CLEvent，初始化则定义一个结构体，用一个结构体指针指向要分配对象的地址，从而构造出那一块内存的结构，直接通过指针给相应的位置上赋值即可。如
+	CLStatus CLSharedEventImpl::InitializeSharedObject(SLSharedObjectHead *pObject)
+	{
+		SLSharedEventItem *pEventItem = (SLSharedEventItem*)pObject;  //用结构体指针构造出内存空间的结构，然后通过指针给相应位置上直接赋值即可。在指定内存上分配一个对象本质上就是在那块内存对应的位置写上相应的值。
+	
+		pEventItem->EnentInfo.Flag = 0;
+		pEventItem->EnentInfo.bSemaphore = 0;
+		pEventItem->EnentInfo.Context = 0;
+	
+		return CLStatus(0,0);
+	}
+		
+	bug1:CLMutexByRecordLocking::Lock()中因为会在/tmp目录下建立一个文件，所以默认情况没有权限，会导致出错。
+	*bug2:会死锁
+	
+	共享条件变量及其封装
+	和共享互斥量类似，封装条件变量也由两点：1.是在进程共享区域中分配。2.是需要为条件变量属性设置进程共享属性。除了需要给原来线程的条件变量设置属性，其他都一样。所以，我们希望通过改造CLConditionVariable类来重用原来的代码一个地方是增加一个接收pthread_cond_t类型指针的构造函数，来接收设置过共享属性的条件变量。另一个地方是wait函数，原来的wait是处理pthread_mutex_t类型互斥量而实现的（用GetMutexPointer方法获得指针），而没有处理跨进程封装类CLMutexBySharedPThread。
+	CLConditionVariable类中，因为要对独享条件变量和共享条件变量分别使用不同的互斥量（CLMutexByPThread和CLMutexBySharedPThread），而接收的参数类型却是CLMutex*,所以要根据传入参数的实际值调用不同的GetMutexPointer方法，一个很容易想到的方式是利用基类纯虚函数，让不同的派生类分别实现。但因为基类CLMutexInterface中没有GetMutexPointer为虚函数，所以不能用多态，只能分别对两个候选类强制转换dynamic_cast<>，只有一个能转换成功，得到不为NULL即要求的值。因为CLMutexInterface的其他两个类没有GetMutexPointer方法，所以不放在基类中当纯虚函数。（还有一个方法是完全面向对象的方法，将CLMutexByPThread和CLMutexBySharedPThread类抽象成一个新的父类CLMutexUsingPThread，这个类派生于祖父类CLMutexInterface，在这个新的父类里面提供纯虚函数GetMutexPointer.）
+	
+	如同共享互斥量，在共享条件变量池的初始化中实现设置条件变量的共享属性等操作。
+
+进程通信的封装
+	进程通信等待方式有很多，比如管道、命名管道、消息队列、存储映射I/O以及共享存储。
 	
 	
 	进程的终止方式：
@@ -339,6 +381,7 @@ CLLogger:
 		8：最后一个线程对取消请求做出响应
 	
 	Debug技巧：
+	eclipse中Debug运行后的工作目录在workspace/项目/的根目录下。
 	这里遇到一个运行时错误，对同一个对象的两次释放导致了错误。在Debug的时候，可以利用断点和单步，通过查看函数调用栈来定位出错的位置。同时，在写程序的时候，一定要判断每一步是否可能出错，如果可能，则必须进行错误检查，否则当程序规模大了以后，出错了也查不出来。
 	CLMsgLoopManagerForSTLqueue::~CLMsgLoopManagerForSTLqueue()
 	{

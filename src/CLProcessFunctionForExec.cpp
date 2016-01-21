@@ -9,10 +9,11 @@
 #include<vector>
 #include<unistd.h>
 #include<errno.h>
-#include"CLProcessFunctionForExec.h"
-#include <CLLogger_old_h>
 #include<iostream>
 #include<string>
+#include"CLProcessFunctionForExec.h"
+#include"CLLogger.h"
+
 
 #define MAX_LENGTH_OF_PATH 255
 CLStatus CLProcessFunctionForExec::RunExecutiveFunction(void *pCmdLine)  //主要是形成命令行，创建新进行
@@ -55,13 +56,19 @@ CLStatus CLProcessFunctionForExec::RunExecutiveFunction(void *pCmdLine)  //主�
 			throw CLStatus(-1,0);
 		}
 
-		execv(argv[0],argv);
+		int r= execv(argv[0],argv);
+		if(r == -1)
+		{
+			std::cout << "In CLProcessFunctionForExec::RunExecutiveFunction(), execv error:" << strerror(errno)<< std::endl;
+		}
+
 		if(chdir(old_directory) == -1)
 		{
 			CLLogger::WriteLogMesg("In CLProcessFunctionForExec::RunExecutiveFunction(), chdir error.",errno);
 			throw CLStatus(-1,0);
 		}
 		CLLogger::WriteLogMesg("In CLProcessFunctionForExec::RunExecutiveFunction(), execv error", errno);
+		throw CLStatus(-1,0);
 	}
 	catch(CLStatus &s)
 	{

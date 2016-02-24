@@ -17,7 +17,7 @@ CLMessageLoopManager::CLMessageLoopManager(CLMessageObserver *pMessageObserver):
 CLMessageLoopManager::~CLMessageLoopManager()
 {
 	if(m_pMessageOberver != 0)                   //因为在消息循环中，每次收到退出消息后就会删掉对应的CLMessageOberver对象，
-		delete m_pMessageOberver;   			//所以这里可能造成了二次析构，所以需要将50行delete m_pMessageOberver;\
+		delete m_pMessageOberver;   			//所以这里可能造成了二次析构，所以需要将50行delete m_pMessageOberver;
 												//释放掉之后还要m_pMessageOberver=0，这样一来避免对二次delete，造成segmentation fault(core dumped)
 
 }

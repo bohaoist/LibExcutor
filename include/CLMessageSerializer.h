@@ -1,5 +1,5 @@
 /*
- * CLMessageSerializer.h
+zpar * CLMessageSerializer.h
  *
  *  Created on: Jan 21, 2016
  *      Author: haobo
@@ -13,6 +13,8 @@
 class CLMessageSerializer
 {
 public:
+	CLMessageSerializer();
+	virtual ~CLMessageSerializer();
 	virtual char *Serialize(CLMessage *pMsg,unsigned int *pFullLength,unsigned int HeadLength) = 0;
 
 

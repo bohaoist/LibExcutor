@@ -5,9 +5,16 @@
  *      Author: haobo
  */
 
-#include"CLMessageSerializer.cpp"
+#include"CLMessageSerializer.h"
 
+CLMessageSerializer::CLMessageSerializer()
+{
 
+}
+CLMessageSerializer::~CLMessageSerializer()
+{
+
+}
 
 
 

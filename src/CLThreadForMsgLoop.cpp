@@ -4,23 +4,26 @@
  *  Created on: Dec 23, 2015
  *      Author: haobo
  */
-#include"CLThreadForMsgLoop.h"
+#include<iostream>
 #include<string.h>
+#include"CLThreadForMsgLoop.h"
 #include"CLStatus.h"
 #include"CLThreadInitialFinishedNotifier.h"
 #include"CLMessageLoopManager.h"
 #include"CLMsgLoopManagerForSTLqueue.h"
 #include"CLExecutiveFunctionForMsgLoop.h"
-#include <CLLogger_old_h>
-#include<iostream>
-CLThreadForMsgLoop::CLThreadForMsgLoop(CLMessageObserver *pMsgObserver, const char *pstrThreadName)
+#include"CLLogger.h"
+#include"CLMsgLoopManagerForPipeQueue.h"
+
+CLThreadForMsgLoop::CLThreadForMsgLoop(CLMessageObserver *pMsgObserver, const char *pstrThreadName,bool bWaitForDeath, int ExecutiveType)
 {
 	if(pMsgObserver == 0)
 		throw "In CLThreadForMsgLoop::CLThreadForMsgLoop(), pMsgObserver error";
 	if((pstrThreadName == 0) || (strlen(pstrThreadName) == 0))
 		throw "In CLThreadForMsgLoop::CLThreadForMsgLoop(), pstrThreadName error";
-	m_bWaitForDeath = false;
-	CLStatus s = Ready(pMsgObserver,pstrThreadName);
+	m_bWaitForDeath = bWaitForDeath;
+	m_pPipeMsgQueue = 0;
+	CLStatus s = Ready(pMsgObserver,pstrThreadName,ExecutiveType);
 	//m_pThread = new CLThread(new CLExecutiveFunctionForMsgLoop(new CLMsgLoopManagerForSTLqueue(pMsgObserver,pstrThreadName)));
 }
 
@@ -36,10 +39,27 @@ CLThreadForMsgLoop::CLThreadForMsgLoop(CLMessageObserver *pMsgObserver, const ch
 	//m_pThread = new CLThread(new CLExecutiveFunctionForMsgLoop(new CLMsgLoopManagerForSTLqueue(pMsgObserver,pstrThreadName)),bWaitForDeath);
 }
 
-CLStatus CLThreadForMsgLoop::Ready(CLMessageObserver *pMsgObserver, const char *pstrThreadName)
+CLStatus CLThreadForMsgLoop::Ready(CLMessageObserver *pMsgObserver, const char *pstrThreadName,int ExecutiveType)
 {
 	m_pCoordinator = new CLRegularCoordinator();
-	CLMessageLoopManager* pM = new CLMsgLoopManagerForSTLqueue(pMsgObserver,pstrThreadName);
+	CLMessageLoopManager* pM;
+	if(ExecutiveType == EXECUTIVE_IN_PROCESS_USE_STL_QUEUE)
+	{
+		pM = new CLMsgLoopManagerForSTLqueue(pMsgObserver,pstrThreadName);
+	}
+	else if(ExecutiveType == EXECUTIVE_IN_PROCESS_USE_PIPE_QUEUE)
+	{
+		m_pPipeMsgQueue = new CLMsgLoopManagerForPipeQueue(pMsgObserver,pstrThreadName,PIPE_QUEUE_IN_PROCESS);
+		pM = m_pPipeMsgQueue;
+	}
+	else if(ExecutiveType == EXECUTIVE_BETWEEN_PROCESS_USE_PIPE_QUEUE)
+	{
+		m_pPipeMsgQueue = new CLMsgLoopManagerForPipeQueue(pMsgObserver,pstrThreadName,PIPE_QUEUE_BETWEEN_PROCESS);
+		pM = m_pPipeMsgQueue;
+	}
+	else
+		throw "In CLThreadForMsgLoop::Ready(), ExecutiveType error.";
+
 	CLExecutiveFunctionForMsgLoop *myadder = new CLExecutiveFunctionForMsgLoop(pM);
 	CLThread *pThread= new CLThread(m_pCoordinator, m_bWaitForDeath);
 	m_pCoordinator->SetExecObjects(pThread,myadder);
@@ -85,4 +105,9 @@ CLStatus CLThreadForMsgLoop::Run(void *pContext)
 	else
 		return CLStatus(-1,0);
 
+}
+
+CLStatus CLThreadForMsgLoop::RegisterDeserializer(unsigned long lMsgID,CLMessageDeserializer *pDeserializer)
+{
+	return m_pPipeMsgQueue->RegisterDeserializer(lMsgID,pDeserializer);
 }

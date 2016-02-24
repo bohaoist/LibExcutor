@@ -8,10 +8,10 @@
 #ifndef CLMESSAGELOOPMANAGER_H_
 #define CLMESSAGELOOPMANAGER_H_
 
+#include<map>
 #include"CLStatus.h"
 #include"CLMessage.h"
 #include"CLMessageObserver.h"
-#include<map>
 #include"CLThreadInitialFinishedNotifier.h"
 
 #define QUIT_MESSAGE_LOOP 1  //注意此定义要和处理完退出消息后的返回码一致，可以写一个头文件专门定义常量

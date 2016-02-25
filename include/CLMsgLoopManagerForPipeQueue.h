@@ -12,9 +12,12 @@
 #include"CLMessageObserver.h"
 #include"CLMessageDeserializer.h"
 #include"CLStatus.h"
+#include"CLMessageQueueByNamedPipe.h"
 
 #define PIPE_QUEUE_BETWEEN_PROCESS 0
 #define PIPE_QUEUE_IN_PROCESS 1
+
+class CLMessageQueueByNamedPipe;
 
 class CLMsgLoopManagerForPipeQueue:public CLMessageLoopManager
 {

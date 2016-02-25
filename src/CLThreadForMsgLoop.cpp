@@ -27,17 +27,17 @@ CLThreadForMsgLoop::CLThreadForMsgLoop(CLMessageObserver *pMsgObserver, const ch
 	//m_pThread = new CLThread(new CLExecutiveFunctionForMsgLoop(new CLMsgLoopManagerForSTLqueue(pMsgObserver,pstrThreadName)));
 }
 
-CLThreadForMsgLoop::CLThreadForMsgLoop(CLMessageObserver *pMsgObserver, const char *pstrThreadName, bool bWaitForDeath)
-{
-	if(pMsgObserver == 0)
-		throw "In CLThreadForMsgLoop::CLThreadForMsgLoop(), pMsgObserver error";
-	if((pstrThreadName == 0) || (strlen(pstrThreadName) == 0))
-		throw "In CLThreadForMsgLoop::CLThreadForMsgLoop(), pstrThreadName error";
-	m_bWaitForDeath = bWaitForDeath;
-	CLStatus s = Ready(pMsgObserver,pstrThreadName);
-
-	//m_pThread = new CLThread(new CLExecutiveFunctionForMsgLoop(new CLMsgLoopManagerForSTLqueue(pMsgObserver,pstrThreadName)),bWaitForDeath);
-}
+//CLThreadForMsgLoop::CLThreadForMsgLoop(CLMessageObserver *pMsgObserver, const char *pstrThreadName, bool bWaitForDeath)
+//{
+//	if(pMsgObserver == 0)
+//		throw "In CLThreadForMsgLoop::CLThreadForMsgLoop(), pMsgObserver error";
+//	if((pstrThreadName == 0) || (strlen(pstrThreadName) == 0))
+//		throw "In CLThreadForMsgLoop::CLThreadForMsgLoop(), pstrThreadName error";
+//	m_bWaitForDeath = bWaitForDeath;
+//	CLStatus s = Ready(pMsgObserver,pstrThreadName);
+//
+//	//m_pThread = new CLThread(new CLExecutiveFunctionForMsgLoop(new CLMsgLoopManagerForSTLqueue(pMsgObserver,pstrThreadName)),bWaitForDeath);
+//}
 
 CLStatus CLThreadForMsgLoop::Ready(CLMessageObserver *pMsgObserver, const char *pstrThreadName,int ExecutiveType)
 {

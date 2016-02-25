@@ -13,13 +13,15 @@
 #include"CLStatus.h"
 #include"CLRegularCoordinator.h"
 #include"DefinitionForConst.h"
+#include"CLMessageDeserializer.h"
+#include"CLMsgLoopManagerForPipeQueue.h"
 
 //创建直接进入消息循环的线程，包含主线程等待新线程在名字服务中注册完相关消息队列
 class CLThreadForMsgLoop
 {
 public:
 	CLThreadForMsgLoop(CLMessageObserver *pMsgObserver, const char *pstrThreadName,bool bWaitForDeath,int ExecutiveType = EXECUTIVE_IN_PROCESS_USE_STL_QUEUE);
-	CLThreadForMsgLoop(CLMessageObserver *pMsgObserver, const char *pstrThreadName, bool bWaitForDeath);
+//	CLThreadForMsgLoop(CLMessageObserver *pMsgObserver, const char *pstrThreadName, bool bWaitForDeath);
 	virtual ~CLThreadForMsgLoop();
 	CLStatus Run(void *pContext);
 

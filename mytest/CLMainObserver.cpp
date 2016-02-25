@@ -63,5 +63,6 @@ int main_NOthread()
 	CLNonThreadForMsgLoop p(m,"main");
 	p.Run(0);
 	//m->m_pTChild->m_pCoordinator->WaitForDeath();
+	return 0;
 }
 

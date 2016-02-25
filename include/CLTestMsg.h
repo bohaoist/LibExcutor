@@ -18,12 +18,11 @@
 class CLTestMsg:public CLMessage
 {
 public:
-	CLTestMsg():CLMessage(TEST_MESSAGE_ID)
+	CLTestMsg():CLMessage(TEST_MESSAGE_ID),i(0),j(0)
 	{
 	}
 	int i;
 	int j;
-
 };
 
 class CLQuitMsg:public CLMessage

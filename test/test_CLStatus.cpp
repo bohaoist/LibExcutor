@@ -4,8 +4,8 @@
  *  Created on: Nov 15, 2015
  *      Author: haobo
  */
-#include "gtest/gtest.h"
-#include "CLStatus.h"
+#include "../gtest_src/gtest/gtest.h"
+#include "../include/CLStatus.h"
 
 static CLStatus f1()
 {

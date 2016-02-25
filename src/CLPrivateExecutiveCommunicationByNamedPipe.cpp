@@ -5,6 +5,7 @@
  *      Author: haobo
  */
 #include<fcntl.h>
+#include<unistd.h>
 #include"CLPrivateExecutiveCommunicationByNamedPipe.h"
 #include"CLLogger.h"
 #include"CLMessage.h"

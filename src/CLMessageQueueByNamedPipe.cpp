@@ -10,10 +10,12 @@
 #include <errno.h>
 #include<unistd.h>
 #include<string>
+#include<iostream>
+#include<string.h>
 #include"CLMessageQueueByNamedPipe.h"
 #include"CLLogger.h"
 #include"CLStatus.h"
-#define FILE_PATH_FOR_NAMED_PIPE "/tmp"
+#include"DefinitionForConst.h"
 
 
 CLMessageQueueByNamedPipe::CLMessageQueueByNamedPipe(const char *pstrPipeName):m_Event(pstrPipeName,true)
@@ -23,6 +25,7 @@ CLMessageQueueByNamedPipe::CLMessageQueueByNamedPipe(const char *pstrPipeName):m
 
 	if((mkfifo(strFilePath.c_str(),S_IRUSR | S_IWUSR) == -1) && (errno != EEXIST))
 	{
+		std::cout << "mkfifo error,file: "<<strFilePath.c_str() << std::endl;
 		CLLogger::WriteLogMesg("In CLMessageQueueByNamedPipe::CLMessageQueueByNamedPipe, mkfifo error.",errno);
 		throw "In CLMessageQueueByNamedPipe::CLMessageQueueByNamedPipe, mkfifo error.";
 	}

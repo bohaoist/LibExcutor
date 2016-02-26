@@ -72,8 +72,8 @@ CLStatus CLProcess::Run(void *pstrCmdLine)  //先创建一个进程，然后根�
 		m_bProcessCreated = true;
 		if(!m_bWaitForDeath)
 			delete this;      //这里释放了，所以要在堆中分配CLProcess对象
-		else
-			WaitForDeath();
+//		else
+//			WaitForDeath();
 		return CLStatus(1,0);
 	}
 	//return CLStatus(-1,0);

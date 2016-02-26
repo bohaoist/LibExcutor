@@ -7,9 +7,12 @@
 #include<unistd.h>
 #include<fcntl.h>
 #include<errno.h>
+#include<iostream>
+#include<string.h>
 #include"CLExecutiveCommunicationByNamedPipe.h"
 #include"DefinitionForConst.h"
 #include"CLLogger.h"
+
 
 CLExecutiveCommunicationByNamedPipe::CLExecutiveCommunicationByNamedPipe(const char *pstrExecutiveName,bool bDeleteMsg):m_Event(pstrExecutiveName,true)
 {
@@ -19,6 +22,7 @@ CLExecutiveCommunicationByNamedPipe::CLExecutiveCommunicationByNamedPipe(const c
 	m_Fd = open(m_strExecutiveName.c_str(),O_WRONLY | O_NONBLOCK);
 	if(m_Fd == -1)
 	{
+		std::cout << m_strExecutiveName.c_str() <<"=========="<< strerror(errno)<<std::endl;
 		CLLogger::WriteLogMesg("In CLExecutiveCommunicationByNamedPipe::CLExecutiveCommunicationByNamedPipe, open error.",errno);
 		throw "In CLExecutiveCommunicationByNamedPipe::CLExecutiveCommunicationByNamedPipe, open error.";
 	}

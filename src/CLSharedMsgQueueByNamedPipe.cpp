@@ -7,12 +7,15 @@
 
 #include<fcntl.h>
 #include<unistd.h>
+#include<string.h>
 #include<errno.h>
+#include<iostream>
 #include"CLSharedMsgQueueByNamedPipe.h"
 #include"CLLogger.h"
 
 CLSharedMsgQueueByNamedPipe::CLSharedMsgQueueByNamedPipe(const char *pstrPipeName):CLMessageQueueByNamedPipe(pstrPipeName)
 {
+	//std::cout << pstrPipeName << std::endl;
 }
 
 CLSharedMsgQueueByNamedPipe::~CLSharedMsgQueueByNamedPipe()
@@ -33,6 +36,7 @@ CLMessage * CLSharedMsgQueueByNamedPipe::ReadMsgFromPipe(int fd)
 	int length = 0;
 	if(read(fd,&length,sizeof(int)) != sizeof(int))
 	{
+		std::cout << strerror(errno) << std::endl;
 		CLLogger::WriteLogMesg("In CLSharedMsgQueueByNamedPipe::ReadMsgFromPipe,read(fd,&length,sizeof(int) error.",errno);
 		throw "In CLSharedMsgQueueByNamedPipe::ReadMsgFromPipe,read(fd,&length,sizeof(int) error.";
 	}

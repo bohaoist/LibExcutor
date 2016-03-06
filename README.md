@@ -1,3 +1,4 @@
+本文件是开发过程的一些记录，包括部分遇到的问题和解决办法，以及自己的积累的一些经验。
 Design Principle
 
 General Pourpose:学习设计模式，学习封装Linux API，练习C++

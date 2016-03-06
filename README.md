@@ -9,4 +9,4 @@
 4. 使用本执行体库，利用map-reduce思想实现了单机多进程协作的WordCount（词频统计）程序。
 
 ##开发记录  
-[这里](https://github.com/bohaoist/LibExcutor/blob/master/RECORD.txt)记录了本人开发过程中的一些想法，遇到的问题和解决办法，以及积累的经验。 
+[RECORD.txt](https://github.com/bohaoist/LibExcutor/blob/master/RECORD.txt)记录了本人开发过程中的一些想法，遇到的问题和解决办法，以及积累收获到的经验。 

@@ -1,7 +1,6 @@
 Design Principle
 
 General Pourpose:学习设计模式，学习封装Linux API，练习C++
-Method：先看书，然后把书放在一边，自己设计，自己实现！（自己做很重要！照着书上敲代码很多时候是敲了也不知道别人为什么那样做！）
 
 CLStatus:
 	功能：用来反应函数执行完的状态，包括返回值和出错码。

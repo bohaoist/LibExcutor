@@ -1,4 +1,4 @@
-#Linux执行体库简介
+#Linux执行体库简介  
 利用面向对象思想，将常用LinuxAPI封装为一个基于C++的执行体库程序。该库包含了线程和进程的创建模型、同步模型以及通信模型。 
 
 具体包含：
@@ -8,67 +8,65 @@
 3. 进程的封装，包括进程创建的封装，消除了子进程文件描述符继承带来的问题；进程同步的封装（记录锁的封装，共享存储的封装，共享互斥量的封装，共享条件变量的封装，共享事件对象的封装），进程通信的封装（消息对象的序列化和反序列化框架，命名管道型消息队列的封装，基于命名管道的消息发送机制的封装，基于命名管道的消息接收机制的封装，进入消息循环的方式的封装）
 4. 使用本执行体库，利用map-reduce思想实现了单机多进程协作的WordCount（词频统计）程序。
 
-##开发记录
-这里记录了开发过程中的一些想法，遇到的问题和解决办法，以及积累的经验。
+##开发记录  
+这里记录了开发过程中的一些想法，遇到的问题和解决办法，以及积累的经验。  
+- - - 
+CLStatus:
 
-####General Purpose:学习封装Linux API，练习C++，学习设计模式
+功能：用来反应函数执行完的状态，包括返回值和出错码。
+为了使得类外部可以直接使用变量名返回出错码 m_lErrorCode, 使用了两个public的const long &引用来实现外部只可以读不可写。直接 return CLStatus()对象会减少构造对象的次数，提高效率，故这样写。不要CLStatus A; return A；，这样会增加构造次数。
+- - -
+CLLogger:
+功能：每条日志包含一条日志消息和一个出错码。
 
-####CLStatus:
-	功能：用来反应函数执行完的状态，包括返回值和出错码。
-	为了使得类外部可以直接使用变量名返回出错码 m_lErrorCode, 使用了两个public的const long &引用来实现外部只可以读不可写。
-	直接 return CLStatus()对象会减少构造对象的次数，提高效率，故这样写。不要CLStatus A; return A；，这样会增加构造次数。
+Version 0.1：无缓冲  
+CLLogger是一个记录程序出错的日志类，需要读写文件。由于一个程序生命周期内所有记录都写到一个文件中，所以需要数据成员fd。
+又想让它全局唯一，所以把它设计成一个单例模式（Singleton），只能创建一个对象。因为要让 static GetInstance()不通过对象访问，
+所以要把 m_pLogger写成static的。
+单例模式要全局只能创建一个对象，那么构造函数，拷贝构造函数，赋值运算符，析构函数就不能被类外部访问，只能由类本身来控制。
+构造，拷贝构造，赋值运算符都不能被外部访问，那么怎么创建一个对象呢？答案是通过用一个类的函数：static CLLogger * GetInstance();
+有了单例模式来创建对象，每次写日志的时候都需要GetInstance，然后再调用WriteLog写比较麻烦，所以向通过一个封装函数，直接写。
 
-####CLLogger:
-	功能：每条日志包含一条日志消息和一个出错码。
+Version 0.2:有缓冲  
+功能:为了减少磁盘读写，加快速度，有两种方法：一减少write调用次数，减少陷入内核；二尽量顺序写（已满足）。在Version 0.1基础上加入缓冲。
+task list:加入缓冲
+怎样描述一个缓冲区呢？首先，要给缓冲区指派一个存储空间，用一个指针指向其起始地址；其次，缓冲区有大小size，已用空间大小used，剩余空间大小empty，
+当前写入位置（用 缓冲区size-已用空间used 即可）。
+WriteLog的时候，对要写的消息和缓冲区大小，剩余大小的判断顺序很重要！采用从大到小的顺序原则进行判断。先判断要的写消息是否大于缓冲区大小，若是则直接写入；若否，则再判断
+要写入的消息是否大于缓冲区剩余空间，若是则刷新；若否，则直接写入缓冲区。
+需要增加刷新缓冲的函数：Flush()；
+此版利用不同的缓冲区大小,进行了性能测试，发现一个合适的缓冲区大小直接影响着性能，见measuring_efficiency_main.cpp。
+
+Version 0.3:程序退出时刷缓冲问题  
+存在问题：  
+1. 之前版本程序退出前，必须有库使用者手动flush缓冲才能避免缓冲丢失，不方便使用。希望退出时自动清理缓冲。  
+2. main返回后并不意味着程序运行结束了，全局对象的析构函数才刚开始。若这些对象的析构中调用了WriteLogMesg则这写数据扔会保留在缓冲中。  
+解决方案：
+
+1. 用atexit函数。在单例模式创建对象的时候注册一个OnProcessExit函数进行刷缓冲。注意：因为atexit函数规定了注册函数的原型，且要符合c语言默认
+调用约定（函数参数从右到左压栈，并由调用者清栈），若是成员函数，则多出来了this指针，不符合注册函数原型要求，所以OnProcessExit应该是一个静态static函数成员函数。  
+方案1存在的问题： 一、atexit注册的函数并没有说明全局对象的析构函数同同注册函数间的调用先后顺序关系，不保证能处理析构全局对象时写的日志（实际上不能处理）。  二、如果由atexit注册的其他函数需要写日志，也无法保证能正确的刷缓冲。
+2. Improving slution：既然可能在调用OnProcessExit后还可能写日志到缓冲，那么我们就设置一个标志flag，当调用OnProcessExit后只能用无缓冲的写。
+3. 如果程序是非正常退出，如异常try，进程调用_exit函数,_EXIT等，由atexit注册的函数都不会被调用。这些情况就只能由程序库用户自己手动刷新了。
+- - -
+####线程的封装：
+内容：包括线程的创建、同步、线程之间的通信等。
+#####线程创建的封装：
+编译问题：pthread 库不是 Linux 系统默认的库，连接时需要使用静态库 libpthread.a，所以在使用pthread_create()创建线程，以及调用 pthread_atfork()函数建立fork
+处理程序时，需要链接该库。在编译中要加 -lpthread参数：gcc thread.c -o thread -lpthread。projects->properties->c/c++ builder->toolssetting->
+libraries->add填写pthread，不要在前面加-l。
 	
-	Version 0.1：无缓冲
-	CLLogger是一个记录程序出错的日志类，需要读写文件。由于一个程序生命周期内所有记录都写到一个文件中，所以需要数据成员fd。
-	又想让它全局唯一，所以把它设计成一个单例模式（Singleton），只能创建一个对象。因为要让 static GetInstance()不通过对象访问，
-	所以要把 m_pLogger写成static的。
-	单例模式要全局只能创建一个对象，那么构造函数，拷贝构造函数，赋值运算符，析构函数就不能被类外部访问，只能由类本身来控制。
-	构造，拷贝构造，赋值运算符都不能被外部访问，那么怎么创建一个对象呢？答案是通过用一个类的函数：static CLLogger * GetInstance();
-	有了单例模式来创建对象，每次写日志的时候都需要GetInstance，然后再调用WriteLog写比较麻烦，所以向通过一个封装函数，直接写。
-	
-	Version 0.2:有缓冲
-	功能:为了减少磁盘读写，加快速度，有两种方法：一减少write调用次数，减少陷入内核；二尽量顺序写（已满足）。在Version 0.1基础上加入缓冲。
-	task list:加入缓冲
-	怎样描述一个缓冲区呢？首先，要给缓冲区指派一个存储空间，用一个指针指向其起始地址；其次，缓冲区有大小size，已用空间大小used，剩余空间大小empty，
-	当前写入位置（用 缓冲区size-已用空间used 即可）。
-	WriteLog的时候，对要写的消息和缓冲区大小，剩余大小的判断顺序很重要！采用从大到小的顺序原则进行判断。先判断要的写消息是否大于缓冲区大小，若是则直接写入；若否，则再判断
-	要写入的消息是否大于缓冲区剩余空间，若是则刷新；若否，则直接写入缓冲区。
-	需要增加刷新缓冲的函数：Flush()；
-	此版利用不同的缓冲区大小,进行了性能测试，发现一个合适的缓冲区大小直接影响着性能，见measuring_efficiency_main.cpp。
-	
-	Version 0.3:程序退出时刷缓冲问题
-	问题：1.之前版本程序退出前，必须有库使用者手动flush缓冲才能避免缓冲丢失，不方便使用。希望退出时自动清理缓冲。
-		 2.main返回后并不意味着程序运行结束了，全局对象的析构函数才刚开始。若这些对象的析构中调用了WriteLogMesg则这写数据扔会保留在缓冲中。.
-	解决方案：
-		1.用atexit函数。在单例模式创建对象的时候注册一个OnProcessExit函数进行刷缓冲。注意：因为atexit函数规定了注册函数的原型，且要符合c语言默认
-		调用约定（函数参数从右到左压栈，并由调用者清栈），若是成员函数，则多出来了this指针，不符合注册函数原型要求，所以OnProcessExit应该是一个静态
-		static函数成员函数。
-		方案1存在的问题：一、atexit注册的函数并没有说明全局对象的析构函数同同注册函数间的调用先后顺序关系，不保证能处理析构全局对象时写的日志（实际上不能处理）。
-		二、如果由atexit注册的其他函数需要写日志，也无法保证能正确的刷缓冲。
-		2.Improving slution：既然可能在调用OnProcessExit后还可能写日志到缓冲，那么我们就设置一个标志flag，当调用OnProcessExit后只能用无缓冲的写。
-		3.如果程序是非正常退出，如异常try，进程调用_exit函数,_EXIT等，由atexit注册的函数都不会被调用。这些情况就只能由程序库用户自己手动刷新了。
-		
-线程的封装：
-	内容：包括线程的创建、同步、线程之间的通信等。
-线程创建的封装：
-	编译问题：pthread 库不是 Linux 系统默认的库，连接时需要使用静态库 libpthread.a，所以在使用pthread_create()创建线程，以及调用 pthread_atfork()函数建立fork
-	处理程序时，需要链接该库。在编译中要加 -lpthread参数：gcc thread.c -o thread -lpthread。projects->properties->c/c++ builder->toolssetting->
-	libraries->add填写pthread，不要在前面加-l。
-	
-	系统API：#include <pthread.h>
-			int pthread_create(pthread_t *restrict tidp,
-		                   const pthread_attr_t *restrict attr,
-		                   void *(*start_rtn)(void), 
-		                   void *restrict arg);
-			Returns: 0 if OK, error number on failure。成功返回0，失败返回错误码。不像其他一些API返回0表示正确，-1表示错误，而出错码要通过全局变量errno获得，然后再用strerror()函数获得具体含义。
-			pthread_t是存储线程ID的类型，定义为typedef unsigned long int pthread_t。参数中指针pthread_t *表面在调用前用先创建一个tidp。
-	
-	等待线程死亡并收回状态资源：主线程如果退出，不管其他线程是否在运行，都一律终止，整个进程也终止。所以需要用到等待线程死亡并收回线程状态所占用的资源：pthread_join。
-	调用它的线程会进入阻塞状态。
-	终止时自动收回所占资源：pthread_detach。若调用了pthread_detach后再调用phtread_join，则后者会返回EINVAL错误。
+>系统API：#include <pthread.h>
+int pthread_create(pthread_t *restrict tidp,
+               const pthread_attr_t *restrict attr,
+               void *(*start_rtn)(void), 
+               void *restrict arg);
+Returns: 0 if OK, error number on failure。成功返回0，失败返回错误码。不像其他一些API返回0表示正确，-1表示错误，而出错码要通过全局变量errno获得，然后再用strerror()函数获得具体含义。
+pthread_t是存储线程ID的类型，定义为typedef unsigned long int pthread_t。参数中指针pthread_t *表面在调用前用先创建一个tidp。
+
+等待线程死亡并收回状态资源：主线程如果退出，不管其他线程是否在运行，都一律终止，整个进程也终止。所以需要用到等待线程死亡并收回线程状态所占用的资源：pthread_join。
+调用它的线程会进入阻塞状态。
+终止时自动收回所占资源：pthread_detach。若调用了pthread_detach后再调用phtread_join，则后者会返回EINVAL错误。
 	
 	标*的为比较重要的封装方法。
 	
@@ -259,7 +257,7 @@
 	CLMessageLoopManager的析构～CLMessageLoopManager（）中又释放了一次delete m_pMessageOberver;而在此类的EnterMessageLoop中当收到QUIT_MESSAGE_LOOP后，也会有一次delete m_pMessageOberver。原来的代码delete后没有将m_pMessageOberver=0，这将导致在析构函数中二次释放造成segmentation fault。所以修复方案是删除析构中的delete，直接由EnterMessageLoop中的地方来释放；或者是将EnterMessageLoop中的delete后m_pMessageOberver赋值为0
 
 
-进程的封装：
+##进程的封装：  
 	进程创建fork函数：fork函数一次调用两次返回，分别返回给父进程（返回子进程pid）和子进程（返回0）。刚创建子进程时，子进程只是父进程的副本（二者完全一样），二者内容一样。这样一来，就需要告诉子进程从哪里开始运行，答案是子进程从fork返回处开始运行。如何在编程中区分哪个是父进程哪个是子进程呢？根据它们的返回值的不同来区分。子进程返回0，父进程返回子进程pid来判断。关键点：子进程复制了父进程的地址空间，（在exec前）二者一样！
 	
 	父子进程间的文件共享：

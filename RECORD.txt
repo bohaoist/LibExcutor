@@ -422,4 +422,4 @@ CLLogger:
 	segmentation fault (core dumped)错误调试：
 	Segmentation fault(段错误)是由于虚拟内存管理单元的异常所致，而该异常则通常是由于解引用一个未初始化或非法值的指针引起的。
     Linux中提供了core dump的功能，使得对这类错误的调试更为容易。一般情况下，linux系统是不允许产生core文件的，因此首先要解除这个限制：ulimit -c unlimited。接下来，运行含segmentation fault的段程序，如：./test。这时，segmentation fault的错误信息会显示为：Segmentation fault (core dumped)。在该文件夹下会出现一个名为core的文件，
-    使用生成的core文件进行调试：gdb test core；(gdb) bt //bt是gdb中查看堆栈情况的命令，根据堆栈调用情况找到出问题的地方。
+    使用生成的core文件进行调试：gdb test core；(gdb) bt  //bt是gdb中查看堆栈情况的命令，根据堆栈调用情况找到出问题的地方。

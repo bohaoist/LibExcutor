@@ -8,7 +8,7 @@
 3. 进程的封装，包括进程创建的封装，消除了子进程文件描述符继承带来的问题；进程同步的封装（记录锁，共享存储，共享互斥量，共享条件变量，共享事件对象等的封装），进程通信的封装（消息对象的序列化和反序列化框架，命名管道型消息队列，基于命名管道的消息发送机制，基于命名管道的消息接收机制，进入消息循环的方式等的封装）
 4. 使用本执行体库，利用map-reduce思想实现了单机多进程协作的WordCount（词频统计）程序。
 
-简化类关系图见[这里](https://raw.githubusercontent.com/bohaoist/LibExcutor/master/class_diagram.png)
+简化类关系图见[class_diagram.png](https://github.com/bohaoist/LibExcutor/blob/master/class_diagram.png)。
 
 ##开发环境
 - Ubuntu 14.04 + Eclipse CDT + GCC 4.8.4   

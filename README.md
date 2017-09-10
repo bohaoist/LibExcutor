@@ -1,4 +1,4 @@
-#LibExcutor简介  
+# LibExcutor简介  
 利用面向对象思想，将常用Linux API封装为一个基于C++的执行体库程序。该库包含了线程和进程的创建模型、同步模型以及通信模型。 
 
 具体包含：
@@ -11,8 +11,8 @@
 简化类关系图如下：
 ![简化类关系图](https://github.com/bohaoist/LibExcutor/blob/master/class_diagram.png)
 
-##开发环境
+## 开发环境
 - Ubuntu 14.04 + Eclipse CDT + GCC 4.8.4   
 
-##开发经验记录  
+## 开发经验记录  
 [这里](https://github.com/bohaoist/LibExcutor/blob/master/RECORD.txt)记录了本人开发过程中的一些想法，遇到的问题和解决办法，以及积累收获到的经验。 
